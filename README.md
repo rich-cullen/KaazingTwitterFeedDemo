@@ -25,3 +25,5 @@ node server/twitterStreamingApiStompBridge.js
 ```
 
 - Enjoy!
+
+<img src="dashboard.png"></img>
