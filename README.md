@@ -4,20 +4,19 @@ This is a simple Twitter Streaming API demo. The server listens to Twitter via t
 
 ## Running locally
 
-1. Start ActiveMQ
+- Start ActiveMQ
 
-2. Start Kaazing Gateway v4.0.x
+- Start Kaazing Gateway v4.0.x
 
-3. Run a web server from the directory containing this README.md and index.html
+- Run a web server from the directory containing this README.md and index.html
 
 ```Shell
-cd /Users/rcullen/dev/demos/KaazingTwitterFeedDemo
 python -m SimpleHTTPServer 8080
 ```
 
-4. Browse to http://localhost:8080/
+- Browse to http://localhost:8080/
 
-5. Start the server in Node.js
+- Start the server in Node.js
 
 Check the config is ok in server/twitterStreamingApiStompBridgeConfig.json then...
 
@@ -25,4 +24,4 @@ Check the config is ok in server/twitterStreamingApiStompBridgeConfig.json then.
 node server/twitterStreamingApiStompBridge.js
 ```
 
-6. Enjoy!
+- Enjoy!
