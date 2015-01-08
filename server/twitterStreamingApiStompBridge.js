@@ -71,7 +71,7 @@ function connectToMessageBroker() {
     stompClient.connect();
 }
 
-function connectToTwitterPublicStream() { 
+function connectToTwitterPublicStream() {
     console.log('Connecting to Twitter public stream...');
 
     var twitter = new twit(twitterConfig);
@@ -101,7 +101,7 @@ function tidyUp() {
         stompClient.disconnect();
         console.log('Disconnected from message broker');
     }
-    
+
     if (twitterStream) {
         twitterStream.stop();
         console.log('Disconnected from Twitter stream');
