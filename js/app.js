@@ -212,7 +212,7 @@ $(function () {
     function onConnection() {
         $btnStart.removeAttr('disabled').addClass('btn-success');
         toastr.success('Connection to Kaazing Gateway initiated successfully'); //, 'Gateway Connection Initiated');
-        console.log('Connected');          
+        console.log('Connected');
     }
 
     function subscribeToTopic(topicName) {
@@ -238,7 +238,7 @@ $(function () {
             console.log(tweet.place.country_code + ': @' + tweet.user.screen_name + ': ' + tweet.text);
         }
     }
-    
+
     function updateBarChart(countryIndex) {
         var bar = countryTweetsBarChart.datasets[0].bars[countryIndex];
         bar.value++;
@@ -254,7 +254,7 @@ $(function () {
             // redraw bar chart from scratch
             var canvas = $('#countryTweetsBarChart').get(0);
             var context = canvas.getContext('2d');
-            
+
             $('#countryTweetsBarChart').fadeOut(function () {
                 setBarChartData(getCountryNames(), getCountryTweetTotals());
                 barChartStepWidth = barChartStepWidth * 2;
@@ -263,7 +263,7 @@ $(function () {
                 $('#countryTweetsBarChart').fadeIn();
                 isBarChartBeingRecalibrated = false;
             });
-            
+
         } else {
             countryTweetsBarChart.update(); // no recalibration required, just update
         }

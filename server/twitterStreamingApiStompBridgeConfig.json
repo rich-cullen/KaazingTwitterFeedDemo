@@ -1,9 +1,9 @@
 {
     "TWITTER_CONFIG_COMMENT" : "Please update the following 4 entries based on your Twitter developer account",
-    "TWITTER_CONSUMER_KEY" : "",
-    "TWITTER_CONSUMER_SECRET" : "",
-    "TWITTER_ACCESS_TOKEN" : "",
-    "TWITTER_ACCESS_TOKEN_SECRET" : "",
+    "TWITTER_CONSUMER_KEY" : "61CHt8pd2UrRa9BIKNYGyeoxY",
+    "TWITTER_CONSUMER_SECRET" : "MsYuXn65XP2T7NqEIi12xih9eHm0ptVozUUgbqbUAKcfvh8rF4",
+    "TWITTER_ACCESS_TOKEN" : "16017085-iMlSE338dl3OhMy2C39BmpVdMSmiwJa16yDu2BzUS",
+    "TWITTER_ACCESS_TOKEN_SECRET" : "42qwf6bTAOp6vszlU1Gqoz3NrYakPpt4XcQmQYbv3lkuh",
 
     "ACTIVEMQ_CONFIG_COMMENT" : "The following is ActiveMQ running locally listening to STOMP on port 61616",
     "ACTIVEMQ_HOST" : "localhost",
