@@ -175,7 +175,9 @@ $(function () {
 
     function connectToKaazing() {
 
-        var jmsConnectionFactory = new JmsConnectionFactory('ws://' + location.hostname + ':8001/jms'),
+        var port = (location.port === "" ? 80 : location.port);
+
+        var jmsConnectionFactory = new JmsConnectionFactory('ws://' + location.hostname + ':' + port + '/jms'),
             username = '',
             password = '';
 
