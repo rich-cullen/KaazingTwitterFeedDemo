@@ -97,7 +97,7 @@ $(function () {
                 code : 'SE',
                 name : 'Sweden',
                 tweets : 0
-            },
+            }
         ]
 
         countryCodes = getCountryCodes();
