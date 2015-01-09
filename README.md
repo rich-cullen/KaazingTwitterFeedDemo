@@ -2,14 +2,14 @@
 
 This is a basic Twitter Streaming API demo. There are 2 main components :
 
-- server  that runs under Node.js. The server process listens to a filtered Twitter stream via the Twitter Streaming API. At periodic intervals it republishes the most recent Tweet as a STOMP message to an instance of Apache ActiveMQ.
+- server that runs under Node.js. The server process listens to a filtered Twitter stream via the Twitter Streaming API. At periodic intervals it republishes the most recent Tweet as a STOMP message to an instance of Apache ActiveMQ.
 
 - HTML5 web client that connects to ActiveMQ via KAAZING Gateway JMS edition v4.0.6, subscribes to the Twitter stream destination and displays various metrics in the dashboard.
 
 
 ## Running locally
 
-This demo assumes that KAAZING Gateway JMS Edition v4.0.6 and Apache ActiveMQ 5.10.0 are already installed. Once they are installed and configured, execute the following steps in order to run the demo locally :
+This demo assumes that KAAZING Gateway JMS Edition v4.0.6, Apache ActiveMQ v5.10.0 and Node.js v0.10.25 are already installed. Once they are installed and configured, execute the following steps in order to run the demo locally :
 
 
 ### Clone the repository
@@ -26,14 +26,14 @@ git clone https://github.com/rich-cullen/KaazingTwitterFeedDemo.git
 NB. Configuration may be required.
 
 
-### Run KAAZING Gateway JMS Edition v4.0.x
+### Run KAAZING Gateway JMS Edition v4.0.6
 
 NB. Configuration may be required. It is assumed that the gateway will be exposing an unprotected, CORS accessible JMS service on "ws://your-domain-name-here.com:8001/jms".
 
 
 ###Configure the Node.js server
 
-The configuration file server/twitterStreamingApiStompBridgeConfig.json must be updated to contain :
+The configuration file server/twitterStreamingApiStompBridgeConfig.json must be updated to contain the following:
 
 - your Twitter access tokens and keys. More info on obtaining Twitter access tokens is available [here](https://dev.twitter.com/oauth/overview).
 
@@ -63,15 +63,15 @@ $ node twitterStreamingApiStompBridge.js
 ```
 
 
-### Host the web client
+### Host the HTML5 web client
 
-The simplest way to do this is to run a Python web server from the directory containing index.html
+A simple way to do this is to run a Python web server from the directory containing index.html
 
 ```Shell
 python -m SimpleHTTPServer 8080
 ```
 
-### Start the HTML5 client
+### Start the HTML5 web client
 
 Browse to http://localhost:8080/index.html
 
