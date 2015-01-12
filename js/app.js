@@ -20,8 +20,13 @@ $(function () {
         barChartStartValue,
         isBarChartBeingRecalibrated = false,
         countryTweetsPieChart,
+        tweetTotal = 0,
+        $spanTweetTotal = $('#spanTweetTotal'),
         $btnStart = $('#btnStart'),
-        $btnStop = $('#btnStop');
+        $btnStop = $('#btnStop'),
+        $linkBootstrapStyle = $('#linkBootstrapStyle'),
+        availableStyles = ['bootstrap', 'bootstrap-theme-cosmo', 'bootstrap-theme-slate', 'bootstrap-theme-superhero', 'bootstrap-theme-cyborg'],
+        currentStyle = 0;
 
 
     // event listeners
@@ -39,6 +44,12 @@ $(function () {
         $btnStop.attr('disabled', 'disabled').removeClass('btn-danger');
         $btnStart.removeAttr('disabled').addClass('btn-success');
         toastr.warning('Twitter feed monitoring suspended');
+    });
+
+    $('#btnChangeStyle').on('click', function (event) {
+        currentStyle++;
+        if (currentStyle >= availableStyles.length) { currentStyle = 0; }
+        $linkBootstrapStyle.attr('href', 'css/' + availableStyles[currentStyle] + '.min.css');
     });
 
 
@@ -232,6 +243,8 @@ $(function () {
 
         // check if any redrawing already underway before attempting to update tables, otherwise ignore tweet
         if (!isBarChartBeingRecalibrated) {
+            tweetTotal++;
+            $spanTweetTotal.text(tweetTotal);
             countries[countryIndex].tweets++;
             updateBarChart(countryIndex);
             updatePieChart(countryIndex);

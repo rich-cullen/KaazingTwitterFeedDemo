@@ -7,8 +7,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
     <title>Tweets By Country</title>
-    <link href="css/bootstrap.min.css" rel="stylesheet">
-    <!-- <link href="css/bootstrap-theme-cosmo.min.css" rel="stylesheet"> -->
+    <link id="linkBootstrapStyle" href="css/bootstrap.min.css" rel="stylesheet">
     <link href="css/toastr.min.css" rel="stylesheet"/>
     <link href="css/app.css" rel="stylesheet">
   </head>
@@ -28,9 +27,9 @@
         </div>
         <div id="navbar" class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
-            <li class="active"><a href="#">Home</a></li>
             <li><a href="http://kaazing.com/">Kaazing</a></li>
             <li><a href="http://activemq.apache.org/">Apache ActiveMQ</a></li>
+            <li><a href="http://nodejs.org/">Node.js</a></li>
             <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Building Blocks <span class="caret"></span></a>
               <ul class="dropdown-menu" role="menu">
@@ -43,6 +42,11 @@
                 <li><a href="http://glyphicons.com/">Glyphicons</a></li>
               </ul>
             </li>
+            <li>
+              <button id="btnChangeStyle" type="button" class="btn btn-default btn-sm navbar-btn" aria-label="Left Align">
+                <span class="glyphicon glyphicon-file" aria-hidden="true"></span> Change Style
+              </button>
+            </li>
           </ul>
         </div>
       </div>
@@ -54,6 +58,7 @@
       <div class="row">
         <div class="col-md-2">
           <div id="countryTweetsPieChartLegend"></div>
+          <div><strong>Total Tweets: <span id="spanTweetTotal">0<span></strong></div>
         </div>
         <div class="col-md-3">
           <canvas id="countryTweetsPieChart" width="300" height="300"></canvas>
