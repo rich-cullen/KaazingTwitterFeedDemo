@@ -49,17 +49,16 @@ The configuration file server/twitterStreamingApiStompBridgeConfig.json must be 
 
 ### Start the Node.js server process
 
-Prior to running it, you need install the packages that are depended on. This only needs to be done once, or anytime the packages.json file is updated with different dependencies:
+Prior to running it, you need install the packages that are depended on. This only needs to be done once, or anytime the package.json file is updated with different dependencies:
 
 ```Shell
 $ cd server
 $ npm install
 ```
-Once the dependencies are installed, you can run it:
+Once the dependencies are installed, you can run it. From within the same server directory:
 
 ```Shell
-$ cd server
-$ node twitterStreamingApiStompBridge.js
+$ npm start
 ```
 
 

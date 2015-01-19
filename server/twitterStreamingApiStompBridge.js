@@ -20,7 +20,7 @@ var twit = require('twit'), // https://github.com/ttezel/twit
 
 // config
 nconf.file( {
-    file: 'twitterStreamingApiStompBridgeConfig.json'
+    file: __dirname + '/twitterStreamingApiStompBridgeConfig.json'
 });
 
 var twitterConfig = {
