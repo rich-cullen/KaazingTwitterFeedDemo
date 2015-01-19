@@ -64,18 +64,23 @@
           <canvas id="countryTweetsPieChart" width="300" height="300"></canvas>
         </div>
         <div class="col-md-2 col-md-offset-2">
-          <strong>Twitter Feed Controls</strong>
-          <div class="well">
-            <div class="btn-group-vertical center-block" role="group" aria-label="...">
-              <button id="btnStart" type="button" class="btn" disabled="disabled" aria-label="Left Align">
-                <span class="glyphicon glyphicon-play-circle" aria-hidden="true"></span> Start
-              </button>
-              <button id="btnStop" type="button" class="btn" disabled="disabled" aria-label="Left Align">
-                <span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span> Stop
-              </button>
+          <div id="feedControlPanel" class="panel panel-default">
+            <div class="panel-heading">
+              Twitter Feed Control
+            </div>
+            <div class="panel-body">
+              <div class="btn-group-vertical center-block" role="group" aria-label="...">
+                <button id="btnStart" type="button" class="btn" disabled="disabled" aria-label="Left Align">
+                  <span class="glyphicon glyphicon-play-circle" aria-hidden="true"></span> Start
+                </button>
+                <button id="btnStop" type="button" class="btn" disabled="disabled" aria-label="Left Align">
+                  <span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span> Stop
+                </button>
+              </div>
             </div>
           </div>
         </div>
+
       </div>
 
       <h2>Tweets By Country <small>Bar Chart</small></h2>
