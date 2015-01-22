@@ -9,7 +9,9 @@ $(function () {
     var connection,
         session,
         consumer,
-        twitterTopicName = 'twitter_stream',
+        maxTweetRateProducer,
+        twitterStreamTopicName = 'twitter_stream',
+        maxTweetRateControlTopicName = 'twitter_stream_control',
         countries = [],
         countryCodes = [],
         countryTweetsBarChart,
@@ -31,7 +33,7 @@ $(function () {
 
     // event listeners
     $btnStart.on('click', function (event) {
-        subscribeToTopic(twitterTopicName);
+        subscribeToTopic(twitterStreamTopicName);
         $btnStart.attr('disabled', 'disabled').removeClass('btn-success');
         $btnStop.removeAttr('disabled').addClass('btn-danger');
         toastr.success('Actively monitoring Twitter feed');
@@ -46,6 +48,10 @@ $(function () {
         toastr.warning('Twitter feed monitoring suspended');
     });
 
+    $('input[type=radio][name=maxTweetRate]').change(function() {
+        setMaxTweetRate(this.value);
+    });
+
     $('#btnChangeStyle').on('click', function (event) {
         currentStyle++;
         if (currentStyle >= availableStyles.length) { currentStyle = 0; }
@@ -55,7 +61,6 @@ $(function () {
 
     // main prog
     initialiseCountryData();
-    initialiseToastr();
     initialiseBarChart();
     initialisePieChart();
     connectToKaazing();
@@ -112,10 +117,6 @@ $(function () {
         ]
 
         countryCodes = getCountryCodes();
-    }
-
-    function initialiseToastr() {
-        // toastr.options.positionClass = 'toast-bottom-right';
     }
 
     function initialiseBarChart() {
@@ -221,16 +222,30 @@ $(function () {
     }
 
     function onConnection() {
+        createMaxTweetRateProducer(maxTweetRateControlTopicName);
+        setMaxTweetRate('5');
         $btnStart.removeAttr('disabled').addClass('btn-success');
-        toastr.success('Connection to Kaazing Gateway initiated successfully'); //, 'Gateway Connection Initiated');
+        $('[name="maxTweetRate"]').parent().removeClass('disabled');
+        toastr.success('Connection to Kaazing Gateway initiated successfully');
         console.log('Connected');
+    }
+
+    function createMaxTweetRateProducer(topicName) {
+        var destination = session.createTopic('/topic/' + topicName);
+        maxTweetRateProducer = session.createProducer(destination);
+    }
+
+    function setMaxTweetRate(maxTweetRate) {
+        var msg = msg = session.createTextMessage(maxTweetRate);
+        maxTweetRateProducer.send(msg, null);
+        console.log('Max tweet publication rate updated to: ' + maxTweetRate + ' tweets per second');
     }
 
     function subscribeToTopic(topicName) {
         var destination = session.createTopic('/topic/' + topicName);
         consumer = session.createConsumer(destination);
         consumer.setMessageListener(onMessage);
-        console.log('Subscribed to topic: ' + twitterTopicName);
+        console.log('Subscribed to topic: ' + twitterStreamTopicName);
     }
 
     function onMessage(textMessage) {
@@ -248,7 +263,7 @@ $(function () {
             countries[countryIndex].tweets++;
             updateBarChart(countryIndex);
             updatePieChart(countryIndex);
-            console.log(tweet.place.country_code + ': @' + tweet.user.screen_name + ': ' + tweet.text);
+            // console.log(tweet.place.country_code + ': @' + tweet.user.screen_name + ': ' + tweet.text); // TODO make console logging configurable based on checkbox
         }
     }
 

@@ -8,8 +8,14 @@ var twit = require('twit'), // https://github.com/ttezel/twit
     nconf = require('nconf'), // https://github.com/flatiron/nconf
     stompClient,
     twitterStream,
+    twitterStreamControlDestination = '/topic/twitter_stream_control',
+    controlDestinationHeaders = {
+        destination: twitterStreamControlDestination,
+        ack: 'auto'
+    },
     publishDestination = '/topic/twitter_stream',
-    publishIntervalMilliseconds = 100,
+    publishIntervalId = null,
+    publishIntervalMilliseconds = 200, // default to max rate of 5 tweets per second (configurable from the UI)
     latest_tweet = {},
     twitterStreamingApiFilterParams = { // https://dev.twitter.com/streaming/overview/request-parameters#locations
         // locations : '-170, 25, -65, 70' // roughly geofence USA
@@ -49,7 +55,7 @@ process.on('SIGINT', function() {
 // main prog
 connectToMessageBroker();
 connectToTwitterPublicStream();
-setInterval(publishMessage, publishIntervalMilliseconds);
+publishIntervalId = setInterval(publishMessage, publishIntervalMilliseconds);
 
 
 // function definitions
@@ -58,14 +64,17 @@ function connectToMessageBroker() {
 
     stompClient = new stomp.Stomp(activeMqConfig);
 
-    stompClient.on('connected', function () {
-        console.log('Connected to message broker');
-    });
-
     stompClient.on('error', function (error_frame) {
         console.log(error_frame.body);
         tidyUp();
         process.exit(0);
+    });
+
+    stompClient.on('message', onStompMessage);
+
+    stompClient.on('connected', function () {
+        console.log('Connected to message broker');
+        stompClient.subscribe(controlDestinationHeaders);
     });
 
     stompClient.connect();
@@ -79,9 +88,7 @@ function connectToTwitterPublicStream() {
     twitterStream = twitter.stream('statuses/filter', twitterStreamingApiFilterParams);
     console.log('Connected to Twitter public stream');
 
-    twitterStream.on('tweet', function(tweet) {
-            latest_tweet = tweet;
-        });
+    twitterStream.on('tweet', onTweet);
 }
 
 function publishMessage() {
@@ -96,6 +103,33 @@ function publishMessage() {
     latest_tweet = {};
 }
 
+
+// event handlers
+function onStompMessage(message) {
+    if (message.headers.destination == twitterStreamControlDestination) {
+
+        // if rate is valid then update publication rate
+        var newPublishIntervalMilliseconds = 0,
+        tweetsPerSecondMaxRate = parseInt(message.body, 10);
+
+        if (typeof tweetsPerSecondMaxRate === 'number' && tweetsPerSecondMaxRate > 0 && tweetsPerSecondMaxRate <= 50) {
+            newPublishIntervalMilliseconds = Math.floor(1000 / tweetsPerSecondMaxRate);
+            clearInterval(publishIntervalId);
+            publishIntervalId = setInterval(publishMessage, newPublishIntervalMilliseconds);
+            console.log('Max tweet publication rate updated to: ' + tweetsPerSecondMaxRate + ' tweets per second (publish every ' + newPublishIntervalMilliseconds + 'ms)');
+        }
+        else {
+            console.log('Invalid max tweet rate request received');
+        }
+    }
+}
+
+function onTweet(tweet) {
+    latest_tweet = tweet;
+}
+
+
+// clean shutdown
 function tidyUp() {
     if (stompClient) {
         stompClient.disconnect();

@@ -65,7 +65,7 @@
           <canvas id="countryTweetsPieChart" width="300" height="300"></canvas>
         </div>
         <div class="col-md-2 col-md-offset-2">
-          <div id="feedControlPanel" class="panel panel-default">
+          <div class="panel panel-default">
             <div class="panel-heading">
               Twitter Feed Control
             </div>
@@ -77,6 +77,29 @@
                 <button id="btnStop" type="button" class="btn" disabled="disabled" aria-label="Left Align">
                   <span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span> Stop
                 </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              Max Rate Control
+            </div>
+            <div class="panel-body">
+              <div class="btn-group-vertical center-block" data-toggle="buttons" role="group" aria-label="...">
+
+                <label class="btn btn-primary disabled">
+                  <input type="radio" name="maxTweetRate" value="1"> 1 per second
+                </label>
+                <label class="btn btn-primary disabled active">
+                  <input type="radio" name="maxTweetRate" value="5" checked> 5 per second
+                </label>
+                <label class="btn btn-primary disabled">
+                  <input type="radio" name="maxTweetRate" value="10"> 10 per second
+                </label>
+                <label class="btn btn-primary disabled">
+                  <input type="radio" name="maxTweetRate" value="50"> 50 per second
+                </label>
               </div>
             </div>
           </div>
