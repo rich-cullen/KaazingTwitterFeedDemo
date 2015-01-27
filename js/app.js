@@ -8,10 +8,12 @@ $(function () {
     // 'globals'
     var connection,
         session,
-        consumer,
+        twitterStreamConsumer,
+        notificationsConsumer,
         maxTweetRateProducer,
         twitterStreamTopicName = 'twitter_stream',
-        maxTweetRateControlTopicName = 'twitter_stream_control',
+        twitterStreamRateControlTopicName = 'twitter_stream_rate_control',
+        notificationsTopicName = 'twitter_notifications',
         countries = [],
         countryCodes = [],
         countryTweetsBarChart,
@@ -26,29 +28,31 @@ $(function () {
         $spanTweetTotal = $('#spanTweetTotal'),
         $btnStart = $('#btnStart'),
         $btnStop = $('#btnStop'),
+        $radioButtonGroupMaxTweetRate = $('input[type=radio][name=maxTweetRate]'),
         $linkBootstrapStyle = $('#linkBootstrapStyle'),
         availableStyles = ['bootstrap', 'bootstrap-theme-cosmo', 'bootstrap-theme-slate', 'bootstrap-theme-superhero', 'bootstrap-theme-cyborg'],
-        currentStyle = 0;
+        currentStyle = 0,
+        userId = generateGuid();
 
 
-    // event listeners
+    // register event handlers
     $btnStart.on('click', function (event) {
-        subscribeToTopic(twitterStreamTopicName);
+        subscribeToTwitterStream();
         $btnStart.attr('disabled', 'disabled').removeClass('btn-success');
         $btnStop.removeAttr('disabled').addClass('btn-danger');
         toastr.success('Actively monitoring Twitter feed');
     });
 
     $btnStop.on('click', function (event) {
-        if (consumer) {
-            consumer.close(function () { console.log('Consumer closed'); });
+        if (twitterStreamConsumer) {
+            twitterStreamConsumer.close(function () { console.log('Twitter stream consumer closed'); });
         }
         $btnStop.attr('disabled', 'disabled').removeClass('btn-danger');
         $btnStart.removeAttr('disabled').addClass('btn-success');
         toastr.warning('Twitter feed monitoring suspended');
     });
 
-    $('input[type=radio][name=maxTweetRate]').change(function() {
+    $radioButtonGroupMaxTweetRate.change(function() {
         setMaxTweetRate(this.value);
     });
 
@@ -66,7 +70,7 @@ $(function () {
     connectToKaazing();
 
 
-    // function definitions
+    // miscellaneous main function definitions
     function initialiseCountryData() {
         countries = [
             {
@@ -222,33 +226,45 @@ $(function () {
     }
 
     function onConnection() {
-        createMaxTweetRateProducer(maxTweetRateControlTopicName);
-        setMaxTweetRate('5');
+        createMaxTweetRateProducer();
+        setMaxTweetRate(5);
         $btnStart.removeAttr('disabled').addClass('btn-success');
-        $('[name="maxTweetRate"]').parent().removeClass('disabled');
+        $radioButtonGroupMaxTweetRate.parent().removeClass('disabled');
         toastr.success('Connection to Kaazing Gateway initiated successfully');
         console.log('Connected');
+        subscribeToNotifications();
     }
 
-    function createMaxTweetRateProducer(topicName) {
-        var destination = session.createTopic('/topic/' + topicName);
+    function createMaxTweetRateProducer() {
+        var destination = session.createTopic('/topic/' + twitterStreamRateControlTopicName);
         maxTweetRateProducer = session.createProducer(destination);
     }
 
     function setMaxTweetRate(maxTweetRate) {
-        var msg = msg = session.createTextMessage(maxTweetRate);
-        maxTweetRateProducer.send(msg, null);
-        console.log('Max tweet publication rate updated to: ' + maxTweetRate + ' tweets per second');
+        var msgBody = {
+                maxTweetRate: maxTweetRate,
+                userId: userId
+            },
+            textMessage = session.createTextMessage(JSON.stringify(msgBody));
+
+        maxTweetRateProducer.send(textMessage, null);
     }
 
-    function subscribeToTopic(topicName) {
-        var destination = session.createTopic('/topic/' + topicName);
-        consumer = session.createConsumer(destination);
-        consumer.setMessageListener(onMessage);
+    function subscribeToTwitterStream() {
+        var destination = session.createTopic('/topic/' + twitterStreamTopicName);
+        twitterStreamConsumer = session.createConsumer(destination);
+        twitterStreamConsumer.setMessageListener(onTweet);
         console.log('Subscribed to topic: ' + twitterStreamTopicName);
     }
 
-    function onMessage(textMessage) {
+    function subscribeToNotifications() {
+        var destination = session.createTopic('/topic/' + notificationsTopicName);
+        notificationsConsumer = session.createConsumer(destination);
+        notificationsConsumer.setMessageListener(onNotification);
+        console.log('Subscribed to topic: ' + notificationsTopicName);
+    }
+
+    function onTweet(textMessage) {
         var tweet = JSON.parse(textMessage.getText());
 
         if (!tweet || !tweet.place) return;
@@ -263,7 +279,21 @@ $(function () {
             countries[countryIndex].tweets++;
             updateBarChart(countryIndex);
             updatePieChart(countryIndex);
-            // console.log(tweet.place.country_code + ': @' + tweet.user.screen_name + ': ' + tweet.text); // TODO make console logging configurable based on checkbox
+            // console.log(tweet.place.country_code + ': @' + tweet.user.screen_name + ': ' + tweet.text); // TODO make console logging configurable
+        }
+    }
+
+    function onNotification(textMessage) {
+        var notification = JSON.parse(textMessage.getText()),
+            message = notification.broadcastMessage;
+
+        if (notification.rateChangeUserId != userId) {
+            $('input[type=radio][name=maxTweetRate]').prop('checked', false).parent().removeClass('active');
+            $('input[type=radio][name=maxTweetRate][value="' + notification.newMaxRate + '"]').prop('checked', true).parent().addClass('active');
+            toastr.warning(message);
+        }
+        else {
+            toastr.success(message);
         }
     }
 
@@ -330,5 +360,13 @@ $(function () {
 
     function generateRandomRgbaCode() {
         return 'rgba(' + Math.floor(Math.random() * 255) + ',' + Math.floor(Math.random() * 255) + ',' + Math.floor(Math.random() * 255) + ',0.5)';
+    }
+
+    function generateGuid() {
+        function S4() {
+            return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
+        }
+
+        return (S4() + S4() + "-" + S4() + "-4" + S4().substr(0, 3) + "-" + S4() + "-" + S4() + S4() + S4()).toLowerCase();
     }
 });

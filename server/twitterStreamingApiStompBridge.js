@@ -8,11 +8,12 @@ var twit = require('twit'), // https://github.com/ttezel/twit
     nconf = require('nconf'), // https://github.com/flatiron/nconf
     stompClient,
     twitterStream,
-    twitterStreamControlDestination = '/topic/twitter_stream_control',
+    controlDestination = '/topic/twitter_stream_rate_control',
     controlDestinationHeaders = {
-        destination: twitterStreamControlDestination,
+        destination: controlDestination,
         ack: 'auto'
     },
+    notificationsDestination = '/topic/twitter_notifications',
     publishDestination = '/topic/twitter_stream',
     publishIntervalId = null,
     publishIntervalMilliseconds = 200, // default to max rate of 5 tweets per second (configurable from the UI)
@@ -55,7 +56,7 @@ process.on('SIGINT', function() {
 // main prog
 connectToMessageBroker();
 connectToTwitterPublicStream();
-publishIntervalId = setInterval(publishMessage, publishIntervalMilliseconds);
+publishIntervalId = setInterval(publishTweet, publishIntervalMilliseconds);
 
 
 // function definitions
@@ -91,7 +92,7 @@ function connectToTwitterPublicStream() {
     twitterStream.on('tweet', onTweet);
 }
 
-function publishMessage() {
+function publishTweet() {
     if (isEmptyObject(latest_tweet)) return;
 
     stompClient.send({
@@ -106,17 +107,32 @@ function publishMessage() {
 
 // event handlers
 function onStompMessage(message) {
-    if (message.headers.destination == twitterStreamControlDestination) {
+    if (message.headers.destination == controlDestination) {
 
-        // if rate is valid then update publication rate
+        // if rate is valid then update publication rate // TODO: add defensive coding to prevent failure in the event of poorly formatted messages being received
         var newPublishIntervalMilliseconds = 0,
-        tweetsPerSecondMaxRate = parseInt(message.body, 10);
+            messageBody = JSON.parse(message.body),
+            tweetsPerSecondMaxRate = parseInt(messageBody.maxTweetRate, 10);
 
         if (typeof tweetsPerSecondMaxRate === 'number' && tweetsPerSecondMaxRate > 0 && tweetsPerSecondMaxRate <= 50) {
             newPublishIntervalMilliseconds = Math.floor(1000 / tweetsPerSecondMaxRate);
             clearInterval(publishIntervalId);
-            publishIntervalId = setInterval(publishMessage, newPublishIntervalMilliseconds);
-            console.log('Max tweet publication rate updated to: ' + tweetsPerSecondMaxRate + ' tweets per second (publish every ' + newPublishIntervalMilliseconds + 'ms)');
+            publishIntervalId = setInterval(publishTweet, newPublishIntervalMilliseconds);
+
+            // broadcast max rate change notification to connected clients
+            var notification = {
+                newMaxRate: tweetsPerSecondMaxRate,
+                rateChangeUserId: messageBody.userId,
+                broadcastMessage: 'Max tweet publication rate set at ' + tweetsPerSecondMaxRate + ' per second'
+            };
+
+            stompClient.send({
+                destination: notificationsDestination,
+                body: JSON.stringify(notification),
+                persistent: false
+            }, false);
+
+            console.log(notification.broadcastMessage + ' by user ' + notification.rateChangeUserId);
         }
         else {
             console.log('Invalid max tweet rate request received');
