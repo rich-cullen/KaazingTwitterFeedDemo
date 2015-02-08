@@ -24,8 +24,10 @@ $(function () {
         barChartStartValue,
         isBarChartBeingRecalibrated = false,
         countryTweetsPieChart,
-        tweetTotal = 0,
-        $spanTweetTotal = $('#spanTweetTotal'),
+        tweetTotalCountry = 0,
+        tweetTotalOther = 0,
+        $spanTweetTotalCountry = $('#spanTweetTotalCountry'),
+        $spanTweetTotalOther = $('#spanTweetTotalOther'),
         $btnStart = $('#btnStart'),
         $btnStop = $('#btnStop'),
         $radioButtonGroupMaxTweetRate = $('input[type=radio][name=maxTweetRate]'),
@@ -270,12 +272,16 @@ $(function () {
         if (!tweet || !tweet.place) return;
 
         var countryIndex = $.inArray(tweet.place.country_code, countryCodes); // check this is a country we're interested in
-        if (countryIndex == -1) return;
+        if (countryIndex == -1) {
+            tweetTotalOther++;
+            $spanTweetTotalOther.text(tweetTotalOther);
+            return;
+        }
 
         // check if any redrawing already underway before attempting to update tables, otherwise ignore tweet
         if (!isBarChartBeingRecalibrated) {
-            tweetTotal++;
-            $spanTweetTotal.text(tweetTotal);
+            tweetTotalCountry++;
+            $spanTweetTotalCountry.text(tweetTotalCountry);
             countries[countryIndex].tweets++;
             updateBarChart(countryIndex);
             updatePieChart(countryIndex);
