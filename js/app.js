@@ -1,4 +1,5 @@
 $(function () {
+    'use strict';
 
     // console object stub for IE8 with no dev tools open etc
     if(typeof console === 'undefined') {

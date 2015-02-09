@@ -54,7 +54,7 @@
     </nav>
 
     <div class="container">
-      <h2>Tweets By Country <small>Pie Chart</small></h2>
+      <h2>Tweets By Country</h2>
 
       <div class="row">
         <div class="col-md-2">
@@ -84,22 +84,22 @@
 
           <div class="panel panel-default">
             <div class="panel-heading text-center">
-              Max Tweet Rate
+              Max Tweet Rate<br>Per Second
             </div>
             <div class="panel-body">
-              <div class="btn-group-vertical center-block" data-toggle="buttons" role="group" aria-label="...">
+              <div class="btn-group btn-group-sm center-block" data-toggle="buttons" role="group" aria-label="...">
 
                 <label class="btn btn-primary disabled">
-                  <input type="radio" name="maxTweetRate" value="1"> 1 per second
+                  <input type="radio" name="maxTweetRate" value="1">1
                 </label>
                 <label class="btn btn-primary disabled active">
-                  <input type="radio" name="maxTweetRate" value="5" checked> 5 per second
+                  <input type="radio" name="maxTweetRate" value="5" checked>5
                 </label>
                 <label class="btn btn-primary disabled">
-                  <input type="radio" name="maxTweetRate" value="10"> 10 per second
+                  <input type="radio" name="maxTweetRate" value="10">10
                 </label>
                 <label class="btn btn-primary disabled">
-                  <input type="radio" name="maxTweetRate" value="50"> 50 per second
+                  <input type="radio" name="maxTweetRate" value="50">50
                 </label>
               </div>
             </div>
@@ -108,10 +108,8 @@
 
       </div>
 
-      <h2>Tweets By Country <small>Bar Chart</small></h2>
-
       <div class="row">
-        <div class="col-md-12" id="countryTweetsBarChartContainer"><!-- experiment to handle re-render issue -->
+        <div class="col-md-7" id="countryTweetsBarChartContainer"><!-- experiment to handle re-render issue -->
           <canvas id="countryTweetsBarChart" width="600" height="300"></canvas>
         </div>
       </div>
