@@ -1,17 +1,15 @@
+/****************************************************************
+ *   Kaazing WebSocket Profiler
+ ****************************************************************/
 // TODO: wrapped websocket should be created internally, need to extend the pattern and intercept JmsConnectionFactory.createConnection more intelligently
-// TODO: add final output summary that renders to table and invokes any registered final results handler
-// TODO: calculate how long the profiler has been running when stop called, and emit final results that extrapolate use to 24 hours, X users etc
 // TODO: capture outbound traffic also - easiest way to do this?
 // TODO: add latency probe like in FX demo http://demo.kaazing.com/forex/ - NB. This might require a gateway echo service etc
 // TODO: handle connectivity breaks
-// TODO: document config, usage and dependencies
 // TODO: tighten defensive coding in compatibility check stub implementation, initialisation, setters and Array maths helper
+// TODO: Optional - This could be a standalone widget and render its own UI buttons - would we want to include bootstrap in that case?
+// TODO: Optional - draw table using DOM API rather than jQuery
 
-// TODO: Optional - This could be a standalone widget and render its own UI buttons
-// TODO: Optional - what's the best live chart format for this?
-
-// TODO: Optimise - remove as many dependencies as possible
-// TODO: Optimise - draw table using DOM API rather than jQuery
+// TODO: When finished - document config, usage and dependencies
 
 /****************************************************************
  *   console object stub for IE8 with no dev tools open etc
@@ -47,7 +45,7 @@ Kaazing.webSocketProfiler = (function () {
             setResultsHandler: stub,
             start: stub,
             stop: stub
-            //webSocketFactory: new WebSocketFactory() // TODO: obviously this ain't going to work!
+            //webSocketFactory: new WebSocketFactory() // TODO: obviously this ain't going to work if there's now WebSocketFactory
         };
     }
 
@@ -100,6 +98,7 @@ Kaazing.webSocketProfiler = (function () {
      ****************************************************************/
     var webSocketFactory,
         webSocket,
+        profileStartTime,
         profileFrequencyMilliseconds,
         profileIntervalID,
         intervalPackets = [],
@@ -114,8 +113,7 @@ Kaazing.webSocketProfiler = (function () {
         debug,
         isInitialised = false,
         bandwidthHistorySize,
-        inboundBandwidthHistory = [],
-        profileStartTime;
+        inboundBandwidthHistory = [];
 
 
     /****************************************************************
@@ -158,7 +156,7 @@ Kaazing.webSocketProfiler = (function () {
             }
         },
 
-        processIntervalPackets = function () {
+        generateIntervalStats = function () {
 
             var sizes = intervalPackets.map(function (d) {
                 return d.bytes
@@ -176,7 +174,7 @@ Kaazing.webSocketProfiler = (function () {
                 inboundBandwidthHistory.push({
                     timeSinceStartMilliseconds: Math.floor(Date.now() - profileStartTime),
                     intervalKilobytesPerSecond: kilobytesPerSecond,
-                    cumulativeKiloBytes: Math.round(100 * cumulativeBytes / 1000) / 100 // rounded to 2 decimal points
+                    cumulativeKilobytes: Math.round(100 * cumulativeBytes / 1000) / 100 // rounded to 2 decimal points
                 });
             }
 
@@ -219,12 +217,15 @@ Kaazing.webSocketProfiler = (function () {
 
             var $container = $(intervalSummaryTableContainerIDSelector),
                 $table,
+                $caption,
                 $thead,
                 $tbody,
-                $tr;
+                $tr,
+                generateEmptyIntervalSummaryRow;
 
             if (!$container.find('table').length) {
-                $table = $('<table>').addClass('table table-striped'); // on the off chance bootstrap is available
+                $table = $('<table>').addClass('table table-striped'); // if bootstrap css is available
+                $caption = $('<caption>').text('Network Profiler Session & Interval Summary');
                 $thead = $('<thead>');
                 $tbody = $('<tbody>');
 
@@ -239,28 +240,23 @@ Kaazing.webSocketProfiler = (function () {
                 $tr.append($('<th>').text('Bandwidth'));
                 $thead.append($tr);
 
-                $tr = $('<tr>');
-                $tr.append($('<td>').text('Inbound'));
-                $tr.append($('<td>').attr('id', 'wspIntSumInboundTotPackets'));
-                $tr.append($('<td>').attr('id', 'wspIntSumInboundTotKilobytes'));
-                $tr.append($('<td>').attr('id', 'wspIntSumInboundPacketsPerSecond'));
-                $tr.append($('<td>').attr('id', 'wspIntSumInboundMinPacketSize'));
-                $tr.append($('<td>').attr('id', 'wspIntSumInboundMaxPacketSize'));
-                $tr.append($('<td>').attr('id', 'wspIntSumInboundMedianPacketSize'));
-                $tr.append($('<td>').attr('id', 'wspIntSumInboundKilobytesPerSecond'));
-                $tbody.append($tr);
+                generateEmptyIntervalSummaryRow = function (flowDirection) {
+                    $tr = $('<tr>');
+                    $tr.append($('<td>').text(flowDirection + 'bound'));
+                    $tr.append($('<td>').attr('id', 'kwpIntSum' + flowDirection + 'TotPackets'));
+                    $tr.append($('<td>').attr('id', 'kwpIntSum' + flowDirection + 'TotKilobytes'));
+                    $tr.append($('<td>').attr('id', 'kwpIntSum' + flowDirection + 'PacketsPerSecond'));
+                    $tr.append($('<td>').attr('id', 'kwpIntSum' + flowDirection + 'MinPacketSize'));
+                    $tr.append($('<td>').attr('id', 'kwpIntSum' + flowDirection + 'MaxPacketSize'));
+                    $tr.append($('<td>').attr('id', 'kwpIntSum' + flowDirection + 'MedianPacketSize'));
+                    $tr.append($('<td>').attr('id', 'kwpIntSum' + flowDirection + 'KilobytesPerSecond'));
+                    return $tr
+                };
 
-                //$tr = $('<tr>');
-                //$tr.append($('<td>').text('Outbound'));
-                //$tr.append($('<td>').attr('id', 'wspIntSumOutboundTotPackets'));
-                //$tr.append($('<td>').attr('id', 'wspIntSumOutboundTotKilobytes'));
-                //$tr.append($('<td>').attr('id', 'wspIntSumOutboundPacketsPerSecond'));
-                //$tr.append($('<td>').attr('id', 'wspIntSumOutboundMinPacketSize'));
-                //$tr.append($('<td>').attr('id', 'wspIntSumOutboundMaxPacketSize'));
-                //$tr.append($('<td>').attr('id', 'wspIntSumOutboundMedianPacketSize'));
-                //$tr.append($('<td>').attr('id', 'wspIntSumOutboundKilobytesPerSecond'));
-                //$tbody.append($tr);
+                $tbody.append(generateEmptyIntervalSummaryRow('In'));
+                $tbody.append(generateEmptyIntervalSummaryRow('Out'));
 
+                $table.append($caption);
                 $table.append($thead);
                 $table.append($tbody);
                 $container.append($table);
@@ -268,21 +264,21 @@ Kaazing.webSocketProfiler = (function () {
         },
 
         updateIntervalSummaryTable = function (intervalStats) {
-            $('#wspIntSumInboundTotPackets').text(intervalStats.inbound.cumulativePackets);
-            $('#wspIntSumInboundTotKilobytes').text(intervalStats.inbound.cumulativeBytes / 1000);
-            $('#wspIntSumInboundPacketsPerSecond').text(intervalStats.inbound.intervalPacketsPerSecond + ' msg/s');
-            $('#wspIntSumInboundMinPacketSize').text(intervalStats.inbound.intervalMinPacketSizeBytes);
-            $('#wspIntSumInboundMaxPacketSize').text(intervalStats.inbound.intervalMaxPacketSizeBytes);
-            $('#wspIntSumInboundMedianPacketSize').text(intervalStats.inbound.intervalMedianPacketSizeBytes);
-            $('#wspIntSumInboundKilobytesPerSecond').text(intervalStats.inbound.intervalKilobytesPerSecond + ' KB/s');
+            $('#kwpIntSumInTotPackets').text(intervalStats.inbound.cumulativePackets);
+            $('#kwpIntSumInTotKilobytes').text(intervalStats.inbound.cumulativeBytes / 1000);
+            $('#kwpIntSumInPacketsPerSecond').text(intervalStats.inbound.intervalPacketsPerSecond + ' msg/s');
+            $('#kwpIntSumInMinPacketSize').text(intervalStats.inbound.intervalMinPacketSizeBytes);
+            $('#kwpIntSumInMaxPacketSize').text(intervalStats.inbound.intervalMaxPacketSizeBytes);
+            $('#kwpIntSumInMedianPacketSize').text(intervalStats.inbound.intervalMedianPacketSizeBytes);
+            $('#kwpIntSumInKilobytesPerSecond').text(intervalStats.inbound.intervalKilobytesPerSecond + ' KB/s');
 
-            //$('#wspIntSumOutboundTotPackets').text(intervalStats.outbound.cumulativePackets);
-            //$('#wspIntSumOutboundTotKilobytes').text(intervalStats.outbound.cumulativeBytes / 1000);
-            //$('#wspIntSumOutboundPacketsPerSecond').text(intervalStats.outbound.intervalPacketsPerSecond + ' msg/s');
-            //$('#wspIntSumOutboundMinPacketSize').text(intervalStats.outbound.intervalMinPacketSizeBytes);
-            //$('#wspIntSumOutboundMaxPacketSize').text(intervalStats.outbound.intervalMaxPacketSizeBytes);
-            //$('#wspIntSumOutboundMedianPacketSize').text(intervalStats.outbound.intervalMedianPacketSizeBytes);
-            //$('#wspIntSumOutboundKilobytesPerSecond').text(intervalStats.outbound.intervalKilobytesPerSecond + ' KB/s');
+            //$('#kwpIntSumOutboundTotPackets').text(intervalStats.outbound.cumulativePackets);
+            //$('#kwpIntSumOutboundTotKilobytes').text(intervalStats.outbound.cumulativeBytes / 1000);
+            //$('#kwpIntSumOutboundPacketsPerSecond').text(intervalStats.outbound.intervalPacketsPerSecond + ' msg/s');
+            //$('#kwpIntSumOutboundMinPacketSize').text(intervalStats.outbound.intervalMinPacketSizeBytes);
+            //$('#kwpIntSumOutboundMaxPacketSize').text(intervalStats.outbound.intervalMaxPacketSizeBytes);
+            //$('#kwpIntSumOutboundMedianPacketSize').text(intervalStats.outbound.intervalMedianPacketSizeBytes);
+            //$('#kwpIntSumOutboundKilobytesPerSecond').text(intervalStats.outbound.intervalKilobytesPerSecond + ' KB/s');
         },
 
         emitIntervalStats = function (intervalStats) {
@@ -297,12 +293,88 @@ Kaazing.webSocketProfiler = (function () {
             }
         },
 
-        emitResults = function () {
-
+        profile = function () {
+            emitIntervalStats(generateIntervalStats());
         },
 
-        profile = function () {
-            emitIntervalStats(processIntervalPackets());
+        generateResults = function (profileSessionDurationMilliseconds) {
+            var factorHour = 3600000 / profileSessionDurationMilliseconds,
+                factorDay = 86400000 / profileSessionDurationMilliseconds;
+
+            return  {
+                profileSessionDurationSeconds: Math.floor(profileSessionDurationMilliseconds / 1000),
+                packetsProfileSession: cumulativePackets,
+                packetsPerHour: Math.floor(cumulativePackets * factorHour),
+                packetsPerDay: Math.floor(cumulativePackets * factorDay),
+                megabytesProfileSession: Math.round(1000 * cumulativeBytes / 1000000) / 1000, // rounded to 3 decimal points
+                megabytesPerHour: Math.round(1000 * (cumulativeBytes * factorHour) / 1000000) / 1000, // rounded to 3 decimal points
+                megabytesPerDay: Math.round(1000 * (cumulativeBytes * factorDay) / 1000000) / 1000 // rounded to 3 decimal points
+            }
+        },
+
+        buildResultsTable = function () {
+            var $container = $(resultsTableContainerIDSelector),
+                $table,
+                $caption,
+                $thead,
+                $tbody,
+                $tr,
+                generateEmptyResultsRow = function (userCount) {
+                    $tr = $('<tr>');
+                    $tr.append($('<td>').text(userCount));
+                    $tr.append($('<td>').attr('id', 'kwpResultsIn' + userCount + 'UserProfileSessionMegabytes'));
+                    $tr.append($('<td>').attr('id', 'kwpResultsIn' + userCount + 'UserHourMegabytes'));
+                    $tr.append($('<td>').attr('id', 'kwpResultsIn' + userCount + 'UserDayMegabytes'));
+                    return $tr;
+                };
+
+            if (!$container.find('table').length) {
+                $table = $('<table>').addClass('table table-striped'); // if bootstrap css is available
+                $caption = $('<caption>').text('Inbound Data Network Utilisation Projection');
+                $thead = $('<thead>');
+                $tbody = $('<tbody>');
+
+                $tr = $('<tr>');
+                $tr.append($('<th>').text('Clients'));
+                $tr.append($('<th>').attr('id', 'kwpResultsInPerSessionHeader').text('Per Session'));
+                $tr.append($('<th>').text('Per Hour'));
+                $tr.append($('<th>').text('Per Day'));
+                $thead.append($tr);
+
+                $tbody.append(generateEmptyResultsRow(1));
+                $tbody.append(generateEmptyResultsRow(500));
+                $tbody.append(generateEmptyResultsRow(1000));
+
+                $table.append($caption);
+                $table.append($thead);
+                $table.append($tbody);
+                $container.append($table);
+            }
+        },
+
+        updateResultsTable = function (results) {
+            var populateResultsRow = function (userCount) {
+                $('#kwpResultsIn' + userCount + 'UserProfileSessionMegabytes').text(results.megabytesProfileSession * userCount + ' (MB)'); // TODO: round
+                $('#kwpResultsIn' + userCount + 'UserHourMegabytes').text(results.megabytesPerHour * userCount + ' (MB)');
+                $('#kwpResultsIn' + userCount + 'UserDayMegabytes').text(results.megabytesPerDay * userCount + ' (MB)');
+            };
+
+            $('#kwpResultsInPerSessionHeader').text('Per Session (' + results.profileSessionDurationSeconds + ' seconds)');
+            populateResultsRow(1);
+            populateResultsRow(500);
+            populateResultsRow(1000);
+        },
+
+        emitResults = function (results) {
+
+            // call any results handler registered by the application
+            resultsHandler && resultsHandler(results);
+
+            // update any table summary registered by the application
+            if (resultsTableContainerIDSelector) {
+                buildResultsTable();
+                updateResultsTable(results);
+            }
         },
 
         setProfileFrequencyMilliseconds = function (value) {
@@ -328,7 +400,7 @@ Kaazing.webSocketProfiler = (function () {
         },
 
         start = function () {
-            webSocket = webSocketFactory.wrappedWebSocket; // relies on the app having set this on the JmsConnectionFactory and this being called after connection established
+            webSocket = webSocketFactory.wrappedWebSocket; // NB. relies app already setting this as the JmsConnectionFactory's WebSocketFactory, and then calling start() AFTER connection is established
             if (!isInitialised) {
                 console.log('Kaazing WebSocket Profiler: Error! Profiler has not been initialised. Call initialise() before starting.');
                 return -1;
@@ -336,12 +408,19 @@ Kaazing.webSocketProfiler = (function () {
                 console.log('Kaazing WebSocket Profiler: Error! Unable to start - no WebSocket connection available');
                 return -2;
             } else {
+
+                // remove results from any previous profiling session
+                if (resultsTableContainerIDSelector) {
+                    $(resultsTableContainerIDSelector).children().fadeOut(function () {
+                        $(resultsTableContainerIDSelector).empty();
+                    });
+                }
+
                 profileStartTime = Date.now();
                 cumulativePackets = 0;
                 cumulativeBytes = 0;
                 intervalPackets = [];
                 webSocket.addEventListener('message', webSocketMessageEventListener, false);
-                webSocket.addEventListener('send', function () { alert('hello'); }, false);
                 profile();
                 profileIntervalID = setInterval(profile, profileFrequencyMilliseconds);
                 if (debug) { console.log('Kaazing WebSocket Profiler: profiling started'); }
@@ -350,15 +429,10 @@ Kaazing.webSocketProfiler = (function () {
         },
 
         stop = function () {
-            if (debug) { console.log('Kaazing WebSocket Profiler: profiling stopped'); }
             if (webSocket) { webSocket.removeEventListener('message', webSocketMessageEventListener, false); }
             if (profileIntervalID) { clearInterval(profileIntervalID); }
-            if (intervalSummaryTableContainerIDSelector) {
-                //$(intervalSummaryTableContainerIDSelector).children().fadeOut(function () {
-                //    $(intervalSummaryTableContainerIDSelector).empty();
-                //});
-            }
-            // TODO: display final results, and scrollto?
+            emitResults(generateResults(Date.now() - profileStartTime));
+            if (debug) { console.log('Kaazing WebSocket Profiler: profiling stopped'); }
         };
 
 
