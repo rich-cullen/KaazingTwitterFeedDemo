@@ -14,7 +14,8 @@ var twit = require('twit'), // https://github.com/ttezel/twit
         ack: 'auto'
     },
     notificationsDestination = '/topic/twitter_notifications',
-    publishDestination = '/topic/twitter_stream',
+    publishDestinationFull = '/topic/twitter_stream',
+    publishDestinationDelta = '/topic/twitter_stream_delta',
     publishIntervalId = null,
     publishIntervalMilliseconds = 200, // default to max rate of 5 tweets per second (configurable from the UI)
     latest_tweet = {},
@@ -95,13 +96,31 @@ function connectToTwitterPublicStream() {
 function publishTweet() {
     if (isEmptyObject(latest_tweet)) return;
 
-    stompClient.send({
-        destination: publishDestination,
-        body: JSON.stringify(latest_tweet),
-        persistent: false
-    }, false); // true = request receipt (which will trigger 'receipt' event)
+    var stompMessageFull = constructStompTweetMessage(latest_tweet, publishDestinationFull);
+    var stompMessageDelta = constructStompTweetMessage(latest_tweet, publishDestinationDelta);
+    stompClient.send(stompMessageFull, false);
+    stompClient.send(stompMessageDelta, false);
 
     latest_tweet = {};
+}
+
+function constructStompTweetMessage(tweet, destination) {
+    return {
+        destination: destination,
+        persistent: false,
+        body: tweet.text,
+        t_source: tweet.source,
+        t_user_id_str: tweet.user ? tweet.user.id_str : null,
+        t_user_screen_name: tweet.user ? tweet.user.screen_name : null,
+        t_user_profile_image_url: tweet.user ? tweet.user.profile_image_url : null,
+        t_user_geo_enabled: tweet.user ? tweet.user.geo_enabled : null,
+        t_place_country_code: tweet.place ? tweet.place.country_code : null,
+        t_place_full_name: tweet.place ? tweet.place.full_name : null,
+        t_favorited: tweet.favorited,
+        t_retweeted: tweet.retweeted,
+        t_possibly_sensitive: tweet.possibly_sensitive,
+        t_filter_level: tweet.filter_level
+    }
 }
 
 

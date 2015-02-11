@@ -12,9 +12,11 @@ $(function () {
         twitterStreamConsumer,
         notificationsConsumer,
         maxTweetRateProducer,
-        twitterStreamTopicName = 'twitter_stream',
+        twitterStreamTopicNameFull = 'twitter_stream',
+        twitterStreamTopicNameDelta = 'twitter_stream_delta',
         twitterStreamRateControlTopicName = 'twitter_stream_rate_control',
         notificationsTopicName = 'twitter_notifications',
+        isSubscribedToTwitterStream = false,
         countries = [],
         countryCodes = [],
         countryTweetsBarChart,
@@ -31,16 +33,32 @@ $(function () {
         $spanTweetTotalOther = $('#spanTweetTotalOther'),
         $btnStart = $('#btnStart'),
         $btnStop = $('#btnStop'),
+        $btnWebSocketProfilerStart = $('#btnWebSocketProfilerStart'),
+        $btnWebSocketProfilerStop = $('#btnWebSocketProfilerStop'),
         $radioButtonGroupMaxTweetRate = $('input[type=radio][name=maxTweetRate]'),
+        $radioButtonDeltaDelivery = $('input[type=radio][name=deltaDelivery]'),
         $linkBootstrapStyle = $('#linkBootstrapStyle'),
         availableStyles = ['bootstrap', 'bootstrap-theme-cosmo', 'bootstrap-theme-slate', 'bootstrap-theme-superhero', 'bootstrap-theme-cyborg'],
         currentStyle = 0,
-        userId = generateGuid();
+        userId = generateGuid(),
+        jmsProfilerConfig = {
+            profileFrequencyMilliseconds: 2000,
+            bandwidthHistorySize: 10,
+            intervalSummaryTableContainerID: 'webSocketProfilerIntervalSummaryTableContainer',
+            intervalSummaryHandler: function (intervalStats) {
+                console.log(intervalStats);
+            },
+            resultsTableContainerID: 'webSocketProfilerResultsTableContainer',
+            resultsHandler: function (results) {
+                console.log(results);
+            },
+            debug: true
+        };
 
 
     // register event handlers
     $btnStart.on('click', function (event) {
-        subscribeToTwitterStream();
+        subscribeToTwitterStream($('input[type=radio][name=deltaDelivery]:checked').val());
         $btnStart.attr('disabled', 'disabled').removeClass('btn-success');
         $btnStop.removeAttr('disabled').addClass('btn-danger');
         toastr.success('Actively monitoring Twitter feed');
@@ -49,6 +67,7 @@ $(function () {
     $btnStop.on('click', function (event) {
         if (twitterStreamConsumer) {
             twitterStreamConsumer.close(function () { console.log('Twitter stream consumer closed'); });
+            isSubscribedToTwitterStream = false;
         }
         $btnStop.attr('disabled', 'disabled').removeClass('btn-danger');
         $btnStart.removeAttr('disabled').addClass('btn-success');
@@ -56,13 +75,38 @@ $(function () {
     });
 
     $radioButtonGroupMaxTweetRate.change(function() {
-        setMaxTweetRate(this.value);
+        setMaxTweetRate($(this).val());
+    });
+
+    $radioButtonDeltaDelivery.change(function() {
+        // only change subscription if already subscribed
+        if (isSubscribedToTwitterStream) {
+            if (twitterStreamConsumer) {
+                twitterStreamConsumer.close(function () { console.log('Twitter stream consumer closed'); });
+                isSubscribedToTwitterStream = false;
+            }
+            subscribeToTwitterStream($(this).val());
+        }
     });
 
     $('#btnChangeStyle').on('click', function (event) {
         currentStyle++;
         if (currentStyle >= availableStyles.length) { currentStyle = 0; }
         $linkBootstrapStyle.attr('href', 'css/' + availableStyles[currentStyle] + '.min.css');
+    });
+
+    $btnWebSocketProfilerStart.on('click', function () {
+        var status = Kaazing.webSocketProfiler.start(); // currently can only be called after JMS connection has been established
+        if (status === 0) { // OK
+            $btnWebSocketProfilerStart.attr('disabled', 'disabled').removeClass('btn-success');
+            $btnWebSocketProfilerStop.removeAttr('disabled').addClass('btn-danger');
+        }
+    });
+
+    $btnWebSocketProfilerStop.on('click', function () {
+        $btnWebSocketProfilerStop.attr('disabled', 'disabled').removeClass('btn-danger');
+        $btnWebSocketProfilerStart.removeAttr('disabled').addClass('btn-success');
+        Kaazing.webSocketProfiler.stop();
     });
 
 
@@ -78,50 +122,45 @@ $(function () {
         countries = [
             {
                 code : 'GB',
-                name : 'United Kingdom',
-                tweets : 0
+                name : 'United Kingdom'
             },
             {
                 code : 'FR',
-                name : 'France',
-                tweets : 0
+                name : 'France'
             },
             {
                 code : 'DE',
-                name : 'Germany',
-                tweets : 0
+                name : 'Germany'
             },
             {
                 code : 'CH',
-                name : 'Switzerland',
-                tweets : 0
+                name : 'Switzerland'
             },
             {
                 code : 'ES',
-                name : 'Spain',
-                tweets : 0
+                name : 'Spain'
             },
             {
                 code : 'BE',
-                name : 'Belgium',
-                tweets : 0
+                name : 'Belgium'
             },
             {
                 code : 'IE',
-                name : 'Ireland',
-                tweets : 0
+                name : 'Ireland'
             },
             {
                 code : 'NL',
-                name : 'Netherlands',
-                tweets : 0
+                name : 'Netherlands'
             },
             {
                 code : 'SE',
-                name : 'Sweden',
-                tweets : 0
+                name : 'Sweden'
             }
         ]
+
+        for (var i = 0, j = countries.length; i < j; i++) {
+            countries[i].tweets = 0;
+        }
 
         countryCodes = getCountryCodes();
     }
@@ -198,6 +237,9 @@ $(function () {
             username = '',
             password = '';
 
+        // JMS Profiler integration
+        jmsConnectionFactory.setWebSocketFactory(Kaazing.webSocketProfiler.webSocketFactory);
+
         console.log('Connecting to Kaazing Gateway...');
 
         try {
@@ -233,9 +275,12 @@ $(function () {
         setMaxTweetRate(5);
         $btnStart.removeAttr('disabled').addClass('btn-success');
         $radioButtonGroupMaxTweetRate.parent().removeClass('disabled');
+        $radioButtonDeltaDelivery.parent().removeClass('disabled');
+        $btnWebSocketProfilerStart.removeAttr('disabled').addClass('btn-success');
         toastr.success('Connection to Kaazing Gateway initiated successfully');
         console.log('Connected');
         subscribeToNotifications();
+        Kaazing.webSocketProfiler.initialise(jmsProfilerConfig);
     }
 
     function createMaxTweetRateProducer() {
@@ -253,10 +298,13 @@ $(function () {
         maxTweetRateProducer.send(textMessage, null);
     }
 
-    function subscribeToTwitterStream() {
-        var destination = session.createTopic('/topic/' + twitterStreamTopicName);
+    function subscribeToTwitterStream(deltaDeliveryMode) {
+        var twitterStreamTopicName = deltaDeliveryMode == 'on' ? twitterStreamTopicNameDelta : twitterStreamTopicNameFull,
+            destination = session.createTopic('/topic/' + twitterStreamTopicName);
+
         twitterStreamConsumer = session.createConsumer(destination);
         twitterStreamConsumer.setMessageListener(onTweet);
+        isSubscribedToTwitterStream = true;
         console.log('Subscribed to topic: ' + twitterStreamTopicName);
     }
 
@@ -268,11 +316,8 @@ $(function () {
     }
 
     function onTweet(textMessage) {
-        var tweet = JSON.parse(textMessage.getText());
-
-        if (!tweet || !tweet.place) return;
-
-        var countryIndex = $.inArray(tweet.place.country_code, countryCodes); // check this is a country we're interested in
+        var tweet = extractTweet(textMessage);
+        var countryIndex = $.inArray(tweet.countryCode, countryCodes); // check this is a country we're interested in
         if (countryIndex == -1) {
             tweetTotalOther++;
             $spanTweetTotalOther.text(tweetTotalOther);
@@ -365,15 +410,21 @@ $(function () {
         return countryTotals;
     }
 
+    function extractTweet(textMessage) {
+        return {
+            countryCode: textMessage.getStringProperty('t_place_country_code')
+        }
+    }
+
     function generateRandomRgbaCode() {
         return 'rgba(' + Math.floor(Math.random() * 255) + ',' + Math.floor(Math.random() * 255) + ',' + Math.floor(Math.random() * 255) + ',0.5)';
     }
 
     function generateGuid() {
-        function S4() {
+        function s4() {
             return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
         }
 
-        return (S4() + S4() + "-" + S4() + "-4" + S4().substr(0, 3) + "-" + S4() + "-" + S4() + S4() + S4()).toLowerCase();
+        return (s4() + s4() + "-" + s4() + "-4" + s4().substr(0, 3) + "-" + s4() + "-" + s4() + s4() + s4()).toLowerCase();
     }
 });
