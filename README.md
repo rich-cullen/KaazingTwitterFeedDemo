@@ -28,8 +28,27 @@ NB. Configuration may be required.
 
 ### Run KAAZING Gateway JMS Edition v4.0.6
 
-NB. Configuration may be required. It is assumed that the gateway will be exposing an unprotected, CORS accessible JMS service on "ws://your-domain-name-here.com:8001/jms".
+NB. Configuration may be required.
 
+It is assumed that the gateway will be exposing an unprotected, CORS accessible JMS service on "ws://your-domain-name-here.com:8001/jms". In order for the delta delivery functionality to work as expected it will also require the following JMS service properties configured...
+
+```xml
+<topic>
+  <name>twitter_stream</name>
+  <message.delivery.strategy>full</message.delivery.strategy>
+  <message.header.expiration>include</message.header.expiration>
+  <message.header.messageID>include</message.header.messageID>
+  <message.header.timestamp>include</message.header.timestamp>
+</topic>
+
+<topic>
+  <name>twitter_stream_delta</name>
+  <message.delivery.strategy>delta</message.delivery.strategy>
+  <message.header.expiration>exclude</message.header.expiration>
+  <message.header.messageID>exclude</message.header.messageID>
+  <message.header.timestamp>exclude</message.header.timestamp>
+</topic>
+```
 
 ###Configure the Node.js server
 
@@ -77,7 +96,7 @@ Browse to http://localhost:8080/index.html
 
 ### Use the UI
 
-The client should automatically connect to KAAZING Gateway and provide visual confirmation that this has been successful. The Twitter Feed Control will also be enabled once connected. Click Start to begin monitoring the live Twitter stream.
+The client should automatically connect to KAAZING Gateway and provide visual confirmation that this has been successful. The various controls will also be enabled once connected. Click Start to begin monitoring the live Twitter stream.
 
 ## Client Preview
 
