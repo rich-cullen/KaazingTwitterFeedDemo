@@ -19,6 +19,7 @@ $(function () {
         isSubscribedToTwitterStream = false,
         countries = [],
         countryCodes = [],
+        enableChartAnimation = false,// TODO: make configurable based on user agent or via query string param etc
         countryTweetsBarChart,
         barChartData,
         barChartOptions,
@@ -120,10 +121,10 @@ $(function () {
     // miscellaneous main function definitions
     function initialiseCountryData() {
         countries = [
-            {
-                code : 'GB',
-                name : 'United Kingdom'
-            },
+            //{
+            //    code : 'BE',
+            //    name : 'Belgium'
+            //},
             {
                 code : 'FR',
                 name : 'France'
@@ -133,28 +134,36 @@ $(function () {
                 name : 'Germany'
             },
             {
-                code : 'CH',
-                name : 'Switzerland'
-            },
-            {
-                code : 'ES',
-                name : 'Spain'
-            },
-            {
-                code : 'BE',
-                name : 'Belgium'
-            },
-            {
                 code : 'IE',
                 name : 'Ireland'
+            },
+            {
+                code : 'IT',
+                name : 'Italy'
             },
             {
                 code : 'NL',
                 name : 'Netherlands'
             },
             {
+                code : 'PL',
+                name : 'Poland'
+            },
+            {
+                code : 'ES',
+                name : 'Spain'
+            },
+            {
                 code : 'SE',
                 name : 'Sweden'
+            },
+            //{
+            //    code : 'CH',
+            //    name : 'Switzerland'
+            //},
+            {
+                code : 'GB',
+                name : 'UK'
             }
         ]
 
@@ -176,6 +185,7 @@ $(function () {
 
     function setBarChartOptions(steps, stepWidth, startValue) {
         barChartOptions = {
+            animation: enableChartAnimation,
             scaleOverride : true,
             scaleSteps : steps,
             scaleStepWidth : stepWidth,
@@ -219,6 +229,7 @@ $(function () {
         }
 
         var pieChartOptions = {
+            animation: enableChartAnimation,
             legendTemplate : '<ul class="<%=name.toLowerCase()%>-legend list-unstyled"><% for (var i=0; i<segments.length; i++){%><li><span style="background-color:<%=segments[i].fillColor%>">&nbsp;&nbsp;&nbsp;&nbsp;</span>&nbsp;&nbsp;&nbsp;&nbsp;<%if(segments[i].label){%><%=segments[i].label%><%}%></li><%}%></ul>'
         };
 

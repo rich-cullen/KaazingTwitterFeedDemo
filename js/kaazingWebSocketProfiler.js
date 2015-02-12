@@ -1,6 +1,8 @@
 /****************************************************************
  *   Kaazing WebSocket Profiler
  ****************************************************************/
+// TODO: convert summary throughput stats to bits not bytes
+// TODO: demo should illustrate tcp.maximum.outbound.rate functionality
 // TODO: wrapped websocket should be created internally, need to extend the pattern and intercept JmsConnectionFactory.createConnection more intelligently
 // TODO: capture outbound traffic also - easiest way to do this?
 // TODO: add latency probe like in FX demo http://demo.kaazing.com/forex/ - NB. This might require a gateway echo service etc
@@ -89,6 +91,28 @@ Kaazing.webSocketProfiler = (function () {
             }
 
             return isFinite(result) ? result : 0;
+        }
+    };
+
+    var formatUtility = {
+        formatBytesHumanReadable: function (bytes) {
+            var unitSize = 1000,
+                units,
+                unit,
+                result = bytes;
+
+            if (result < unitSize) {
+                return result + ' (B)';
+            }
+
+            units = [ 'kB', 'MB', 'GB', 'TB', 'PB' ];
+            unit = -1;
+            do {
+                result /= unitSize;
+                unit++;
+            } while (result >= unitSize);
+
+            return Math.round(100 * result) / 100 + ' ' + units[unit]; // round to 2 decimal places
         }
     };
 
@@ -232,7 +256,7 @@ Kaazing.webSocketProfiler = (function () {
                 $tr = $('<tr>');
                 $tr.append($('<th>').text('Flow'));
                 $tr.append($('<th>').text('Tot Packets'));
-                $tr.append($('<th>').text('Tot Size (KB)'));
+                $tr.append($('<th>').text('Tot Size'));
                 $tr.append($('<th>').text('Avg Rate'));
                 $tr.append($('<th>').text('Min Size (B)'));
                 $tr.append($('<th>').text('Max Size (B)'));
@@ -244,7 +268,7 @@ Kaazing.webSocketProfiler = (function () {
                     $tr = $('<tr>');
                     $tr.append($('<td>').text(flowDirection + 'bound'));
                     $tr.append($('<td>').attr('id', 'kwpIntSum' + flowDirection + 'TotPackets'));
-                    $tr.append($('<td>').attr('id', 'kwpIntSum' + flowDirection + 'TotKilobytes'));
+                    $tr.append($('<td>').attr('id', 'kwpIntSum' + flowDirection + 'TotBytes'));
                     $tr.append($('<td>').attr('id', 'kwpIntSum' + flowDirection + 'PacketsPerSecond'));
                     $tr.append($('<td>').attr('id', 'kwpIntSum' + flowDirection + 'MinPacketSize'));
                     $tr.append($('<td>').attr('id', 'kwpIntSum' + flowDirection + 'MaxPacketSize'));
@@ -265,20 +289,20 @@ Kaazing.webSocketProfiler = (function () {
 
         updateIntervalSummaryTable = function (intervalStats) {
             $('#kwpIntSumInTotPackets').text(intervalStats.inbound.cumulativePackets);
-            $('#kwpIntSumInTotKilobytes').text(intervalStats.inbound.cumulativeBytes / 1000);
+            $('#kwpIntSumInTotBytes').text(formatUtility.formatBytesHumanReadable(intervalStats.inbound.cumulativeBytes));
             $('#kwpIntSumInPacketsPerSecond').text(intervalStats.inbound.intervalPacketsPerSecond + ' msg/s');
             $('#kwpIntSumInMinPacketSize').text(intervalStats.inbound.intervalMinPacketSizeBytes);
             $('#kwpIntSumInMaxPacketSize').text(intervalStats.inbound.intervalMaxPacketSizeBytes);
             $('#kwpIntSumInMedianPacketSize').text(intervalStats.inbound.intervalMedianPacketSizeBytes);
-            $('#kwpIntSumInKilobytesPerSecond').text(intervalStats.inbound.intervalKilobytesPerSecond + ' KB/s');
+            $('#kwpIntSumInKilobytesPerSecond').text(intervalStats.inbound.intervalKilobytesPerSecond + ' kB/s');
 
             //$('#kwpIntSumOutboundTotPackets').text(intervalStats.outbound.cumulativePackets);
-            //$('#kwpIntSumOutboundTotKilobytes').text(intervalStats.outbound.cumulativeBytes / 1000);
+            //$('#kwpIntSumOutboundTotBytes').text(formatUtility.formatBytesHumanReadable(intervalStats.outbound.cumulativeBytes));
             //$('#kwpIntSumOutboundPacketsPerSecond').text(intervalStats.outbound.intervalPacketsPerSecond + ' msg/s');
             //$('#kwpIntSumOutboundMinPacketSize').text(intervalStats.outbound.intervalMinPacketSizeBytes);
             //$('#kwpIntSumOutboundMaxPacketSize').text(intervalStats.outbound.intervalMaxPacketSizeBytes);
             //$('#kwpIntSumOutboundMedianPacketSize').text(intervalStats.outbound.intervalMedianPacketSizeBytes);
-            //$('#kwpIntSumOutboundKilobytesPerSecond').text(intervalStats.outbound.intervalKilobytesPerSecond + ' KB/s');
+            //$('#kwpIntSumOutboundKilobytesPerSecond').text(intervalStats.outbound.intervalKilobytesPerSecond + ' kB/s');
         },
 
         emitIntervalStats = function (intervalStats) {
@@ -298,17 +322,18 @@ Kaazing.webSocketProfiler = (function () {
         },
 
         generateResults = function (profileSessionDurationMilliseconds) {
-            var factorHour = 3600000 / profileSessionDurationMilliseconds,
-                factorDay = 86400000 / profileSessionDurationMilliseconds;
+            var profileDurationWholeSeconds = Math.floor(profileSessionDurationMilliseconds / 1000),
+                factorHour = 3600 / profileDurationWholeSeconds,
+                factorDay = 86400 / profileDurationWholeSeconds;
 
             return  {
-                profileSessionDurationSeconds: Math.floor(profileSessionDurationMilliseconds / 1000),
+                profileSessionDurationSeconds: profileDurationWholeSeconds,
                 packetsProfileSession: cumulativePackets,
                 packetsPerHour: Math.floor(cumulativePackets * factorHour),
                 packetsPerDay: Math.floor(cumulativePackets * factorDay),
-                megabytesProfileSession: Math.round(1000 * cumulativeBytes / 1000000) / 1000, // rounded to 3 decimal points
-                megabytesPerHour: Math.round(1000 * (cumulativeBytes * factorHour) / 1000000) / 1000, // rounded to 3 decimal points
-                megabytesPerDay: Math.round(1000 * (cumulativeBytes * factorDay) / 1000000) / 1000 // rounded to 3 decimal points
+                bytesProfileSession: cumulativeBytes,
+                bytesPerHour: cumulativeBytes * factorHour,
+                bytesPerDay: cumulativeBytes * factorDay
             }
         },
 
@@ -342,8 +367,10 @@ Kaazing.webSocketProfiler = (function () {
                 $thead.append($tr);
 
                 $tbody.append(generateEmptyResultsRow(1));
+                $tbody.append(generateEmptyResultsRow(200));
                 $tbody.append(generateEmptyResultsRow(500));
                 $tbody.append(generateEmptyResultsRow(1000));
+                $tbody.append(generateEmptyResultsRow(10000));
 
                 $table.append($caption);
                 $table.append($thead);
@@ -354,15 +381,17 @@ Kaazing.webSocketProfiler = (function () {
 
         updateResultsTable = function (results) {
             var populateResultsRow = function (userCount) {
-                $('#kwpResultsIn' + userCount + 'UserProfileSessionMegabytes').text(results.megabytesProfileSession * userCount + ' (MB)'); // TODO: round
-                $('#kwpResultsIn' + userCount + 'UserHourMegabytes').text(results.megabytesPerHour * userCount + ' (MB)');
-                $('#kwpResultsIn' + userCount + 'UserDayMegabytes').text(results.megabytesPerDay * userCount + ' (MB)');
+                $('#kwpResultsIn' + userCount + 'UserProfileSessionMegabytes').text(formatUtility.formatBytesHumanReadable(results.bytesProfileSession * userCount));
+                $('#kwpResultsIn' + userCount + 'UserHourMegabytes').text(formatUtility.formatBytesHumanReadable(results.bytesPerHour * userCount));
+                $('#kwpResultsIn' + userCount + 'UserDayMegabytes').text(formatUtility.formatBytesHumanReadable(results.bytesPerDay * userCount));
             };
 
             $('#kwpResultsInPerSessionHeader').text('Per Session (' + results.profileSessionDurationSeconds + ' seconds)');
             populateResultsRow(1);
+            populateResultsRow(200);
             populateResultsRow(500);
             populateResultsRow(1000);
+            populateResultsRow(10000);
         },
 
         emitResults = function (results) {
