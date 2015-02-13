@@ -44,7 +44,7 @@ $(function () {
         currentStyle = 0,
         userId = generateGuid(),
         webSocketProfilerConfig = {
-            profileFrequencyMilliseconds: 2000,
+            profileIntervalMilliseconds: 2000,
             bandwidthHistorySize: 10,
             intervalSummaryTableContainerID: 'webSocketProfilerIntervalSummaryTableContainer',
             //intervalSummaryHandler: function (intervalStats) { // TODO: just for websocket profiler testing - remove once happy

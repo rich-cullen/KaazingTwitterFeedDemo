@@ -1,10 +1,10 @@
 /****************************************************************
  *   KAAZING WebSocket Profiler
  ****************************************************************/
-// TODO: demo should illustrate tcp.maximum.upstream.rate functionality
 // TODO: wrapped websocket should be created internally, need to extend the pattern and intercept JmsConnectionFactory.createConnection more intelligently
 // TODO: capture upstream traffic also - easiest way to do this?
 // TODO: handle connectivity breaks
+// TODO: add convenience method to tidy up UI if app wants profiler to clear its own UI elements up
 // TODO: tighten defensive coding in compatibility check stub implementation, initialisation, setters and Array maths helper
 // TODO: Optional-  summary throughput stats to bits not bytes
 // TODO: Optional - add latency probe like in FX demo http://demo.kaazing.com/forex/ - NB. This might require a gateway echo service etc
@@ -40,7 +40,7 @@ Kaazing.webSocketProfiler = (function () {
         var stub = function () { console.log('KAAZING WebSocket Profiler: Error! Unsupported method call') };
         return {
             initialise: stub,
-            setProfileFrequencyMilliseconds: stub,
+            setProfileIntervalMilliseconds: stub,
             setIntervalSummaryTableContainerID: stub,
             setIntervalStatsHandler: stub,
             setResultsTableContainerID: stub,
@@ -123,7 +123,7 @@ Kaazing.webSocketProfiler = (function () {
     var webSocketFactory,
         webSocket,
         profileStartTime,
-        profileFrequencyMilliseconds,
+        profileIntervalMilliseconds,
         profileIntervalID,
         intervalPackets = [],
         cumulativePackets = 0,
@@ -146,7 +146,7 @@ Kaazing.webSocketProfiler = (function () {
     var initialise = function (config) {
             debug = config.debug || false;
             if (debug) { console.log('KAAZING WebSocket Profiler: initialising'); }
-            profileFrequencyMilliseconds = config.profileFrequencyMilliseconds || 2000;
+            profileIntervalMilliseconds = config.profileIntervalMilliseconds || 2000;
             if (config.intervalSummaryTableContainerID) { intervalSummaryTableContainerIDSelector = '#' + config.intervalSummaryTableContainerID; }
             intervalSummaryHandler = config.intervalSummaryHandler;
             if (config.resultsTableContainerID) { resultsTableContainerIDSelector = '#' + config.resultsTableContainerID; }
@@ -186,9 +186,9 @@ Kaazing.webSocketProfiler = (function () {
                 return d.bytes
             });
 
-            var packetsPerSecond = Math.round(1000 * intervalPackets.length / profileFrequencyMilliseconds);
+            var packetsPerSecond = Math.round(1000 * intervalPackets.length / profileIntervalMilliseconds);
             var totalBytes = arrayMathUtility.sum(sizes);
-            var kilobytesPerSecond = Math.round(100 * totalBytes / profileFrequencyMilliseconds) / 100; // rounded to 2 decimal points
+            var kilobytesPerSecond = Math.round(100 * totalBytes / profileIntervalMilliseconds) / 100; // rounded to 2 decimal points
 
             if (bandwidthHistorySize) {
                 if (downstreamBandwidthHistory.length >= bandwidthHistorySize) {
@@ -209,7 +209,7 @@ Kaazing.webSocketProfiler = (function () {
                     intervalMinPacketSizeBytes: arrayMathUtility.min(sizes),
                     intervalMaxPacketSizeBytes: arrayMathUtility.max(sizes),
                     intervalMedianPacketSizeBytes: Math.floor(arrayMathUtility.median(sizes)),
-                    intervalMilliseconds: (profileFrequencyMilliseconds),
+                    intervalMilliseconds: (profileIntervalMilliseconds),
                     intervalPacketsPerSecond: (packetsPerSecond),
                     intervalKilobytesPerSecond: (kilobytesPerSecond),
                     bandWidthHistory: (downstreamBandwidthHistory),
@@ -415,10 +415,10 @@ Kaazing.webSocketProfiler = (function () {
             }
         },
 
-        setProfileFrequencyMilliseconds = function (value) {
-            profileFrequencyMilliseconds = value;
+        setProfileIntervalMilliseconds = function (value) {
+            profileIntervalMilliseconds = value;
             if (profileIntervalID) { clearInterval(profileIntervalID); }
-            profileIntervalID = setInterval(profile, profileFrequencyMilliseconds);
+            profileIntervalID = setInterval(profile, profileIntervalMilliseconds);
         },
 
         setIntervalSummaryTableContainerID = function (value) {
@@ -458,7 +458,7 @@ Kaazing.webSocketProfiler = (function () {
                 intervalPackets = [];
                 webSocket.addEventListener('message', webSocketMessageEventListener, false);
                 profile();
-                profileIntervalID = setInterval(profile, profileFrequencyMilliseconds);
+                profileIntervalID = setInterval(profile, profileIntervalMilliseconds);
                 if (debug) { console.log('KAAZING WebSocket Profiler: profiling started'); }
                 return 0;
             }
@@ -486,7 +486,7 @@ Kaazing.webSocketProfiler = (function () {
      ****************************************************************/
     return {
         initialise: initialise,
-        setProfileFrequencyMilliseconds: setProfileFrequencyMilliseconds,
+        setProfileIntervalMilliseconds: setProfileIntervalMilliseconds,
         setIntervalSummaryTableContainerID: setIntervalSummaryTableContainerID,
         setIntervalStatsHandler: setIntervalStatsHandler,
         setResultsTableContainerID: setResultsTableContainerID,
