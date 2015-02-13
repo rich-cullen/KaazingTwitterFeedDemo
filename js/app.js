@@ -15,11 +15,12 @@ $(function () {
         twitterStreamTopicNameFull = 'twitter_stream',
         twitterStreamTopicNameDelta = 'twitter_stream_delta',
         twitterStreamRateControlTopicName = 'twitter_stream_rate_control',
+        logTweets = true, // TODO make configurable
         notificationsTopicName = 'twitter_notifications',
         isSubscribedToTwitterStream = false,
         countries = [],
         countryCodes = [],
-        enableChartAnimation = false,// TODO: make configurable based on user agent or via query string param etc
+        enableChartAnimation = true, // TODO: make configurable based on user agent or via query string param etc
         countryTweetsBarChart,
         barChartData,
         barChartOptions,
@@ -42,20 +43,19 @@ $(function () {
         availableStyles = ['bootstrap', 'bootstrap-theme-cosmo', 'bootstrap-theme-slate', 'bootstrap-theme-superhero', 'bootstrap-theme-cyborg'],
         currentStyle = 0,
         userId = generateGuid(),
-        jmsProfilerConfig = {
+        webSocketProfilerConfig = {
             profileFrequencyMilliseconds: 2000,
             bandwidthHistorySize: 10,
             intervalSummaryTableContainerID: 'webSocketProfilerIntervalSummaryTableContainer',
-            intervalSummaryHandler: function (intervalStats) {
-                console.log(intervalStats);
-            },
+            //intervalSummaryHandler: function (intervalStats) { // TODO: just for websocket profiler testing - remove once happy
+            //    console.log(intervalStats);
+            //},
             resultsTableContainerID: 'webSocketProfilerResultsTableContainer',
-            resultsHandler: function (results) {
-                console.log(results);
-            },
+            //resultsHandler: function (results) { // TODO: just for websocket profiler testing - remove once happy
+            //    console.log(results);
+            //},
             debug: true
         };
-
 
     // register event handlers
     $btnStart.on('click', function (event) {
@@ -72,7 +72,7 @@ $(function () {
         }
         $btnStop.attr('disabled', 'disabled').removeClass('btn-danger');
         $btnStart.removeAttr('disabled').addClass('btn-success');
-        toastr.warning('Twitter feed monitoring suspended');
+        toastr.info('Twitter feed monitoring suspended');
     });
 
     $radioButtonGroupMaxTweetRate.change(function() {
@@ -80,7 +80,6 @@ $(function () {
     });
 
     $radioButtonDeltaDelivery.change(function() {
-        // only change subscription if already subscribed
         if (isSubscribedToTwitterStream) {
             if (twitterStreamConsumer) {
                 twitterStreamConsumer.close(function () { console.log('Twitter stream consumer closed'); });
@@ -251,7 +250,7 @@ $(function () {
         // JMS Profiler integration
         jmsConnectionFactory.setWebSocketFactory(Kaazing.webSocketProfiler.webSocketFactory);
 
-        console.log('Connecting to Kaazing Gateway...');
+        console.log('Connecting to KAAZING Gateway...');
 
         try {
             var connectionFuture = jmsConnectionFactory.createConnection(username, password, function () {
@@ -277,7 +276,11 @@ $(function () {
     }
 
     function handleException(e) {
-        toastr.error('Exception - ' + e, 'Application error!');
+        if (e.type == 'ConnectionRestoredException') {
+            toastr.success('Connection to KAAZING Gateway successfully re-established', 'Reconnected');
+        } else {
+            toastr.error('Exception - ' + e, 'Application error!');
+        }
         console.log('EXCEPTION: ' + e);
     }
 
@@ -288,10 +291,10 @@ $(function () {
         $radioButtonGroupMaxTweetRate.parent().removeClass('disabled');
         $radioButtonDeltaDelivery.parent().removeClass('disabled');
         $btnWebSocketProfilerStart.removeAttr('disabled').addClass('btn-success');
-        toastr.success('Connection to Kaazing Gateway initiated successfully');
+        toastr.success('Connection to KAAZING Gateway initiated successfully', 'Connected');
         console.log('Connected');
         subscribeToNotifications();
-        Kaazing.webSocketProfiler.initialise(jmsProfilerConfig);
+        Kaazing.webSocketProfiler.initialise(webSocketProfilerConfig);
     }
 
     function createMaxTweetRateProducer() {
@@ -328,21 +331,24 @@ $(function () {
 
     function onTweet(textMessage) {
         var tweet = extractTweet(textMessage);
-        var countryIndex = $.inArray(tweet.countryCode, countryCodes); // check this is a country we're interested in
+        var countryIndex = $.inArray(tweet.place.country_code, countryCodes); // check this is a country we're interested in
         if (countryIndex == -1) {
             tweetTotalOther++;
             $spanTweetTotalOther.text(tweetTotalOther);
             return;
         }
 
-        // check if any redrawing already underway before attempting to update tables, otherwise ignore tweet
+        // check if any redrawing already underway before attempting to update charts, otherwise ignore tweet
         if (!isBarChartBeingRecalibrated) {
             tweetTotalCountry++;
             $spanTweetTotalCountry.text(tweetTotalCountry);
             countries[countryIndex].tweets++;
             updateBarChart(countryIndex);
             updatePieChart(countryIndex);
-            // console.log(tweet.place.country_code + ': @' + tweet.user.screen_name + ': ' + tweet.text); // TODO make console logging configurable
+            if (logTweets && tweet.place.country_code == 'IE') {
+                toastr.warning(tweet.place.country_code + ': @' + tweet.user.screen_name + ': ' + tweet.text);
+                console.log(tweet.place.country_code + ': @' + tweet.user.screen_name + ': ' + tweet.text);
+            }
         }
     }
 
@@ -353,7 +359,7 @@ $(function () {
         if (notification.rateChangeUserId != userId) {
             $('input[type=radio][name=maxTweetRate]').prop('checked', false).parent().removeClass('active');
             $('input[type=radio][name=maxTweetRate][value="' + notification.newMaxRate + '"]').prop('checked', true).parent().addClass('active');
-            toastr.warning(message);
+            toastr.info(message);
         }
         else {
             toastr.success(message);
@@ -423,7 +429,22 @@ $(function () {
 
     function extractTweet(textMessage) {
         return {
-            countryCode: textMessage.getStringProperty('t_place_country_code')
+            text: textMessage.getText(),
+            source: textMessage.getStringProperty('t_source'),
+            user: {
+                id_str: textMessage.getStringProperty('t_user_id_str'),
+                screen_name: textMessage.getStringProperty('t_user_screen_name'),
+                profile_image_url: textMessage.getStringProperty('t_user_profile_image_url'),
+                geo_enabled: textMessage.getStringProperty('t_user_geo_enabled')
+            },
+            place: {
+                country_code: textMessage.getStringProperty('t_place_country_code'),
+                full_name: textMessage.getStringProperty('t_place_full_name')
+            },
+            favorited: textMessage.getStringProperty('t_favorited'),
+            retweeted: textMessage.getStringProperty('t_retweeted'),
+            possibly_sensitive: textMessage.getStringProperty('t_possibly_sensitive'),
+            filter_level: textMessage.getStringProperty('t_filter_level')
         }
     }
 

@@ -1,5 +1,5 @@
 /****************************************************************
- *   Kaazing WebSocket Profiler
+ *   KAAZING WebSocket Profiler
  ****************************************************************/
 // TODO: convert summary throughput stats to bits not bytes
 // TODO: demo should illustrate tcp.maximum.outbound.rate functionality
@@ -10,7 +10,6 @@
 // TODO: tighten defensive coding in compatibility check stub implementation, initialisation, setters and Array maths helper
 // TODO: Optional - This could be a standalone widget and render its own UI buttons - would we want to include bootstrap in that case?
 // TODO: Optional - draw table using DOM API rather than jQuery
-
 // TODO: When finished - document config, usage and dependencies
 
 /****************************************************************
@@ -31,13 +30,14 @@ Kaazing.webSocketProfiler = (function () {
     /****************************************************************
      *   compatibility check
      ****************************************************************/
-    var isCompatible =  !!(window.$ && window.WebSocketFactory && Array.prototype.reduce);
+    var isCompatible =  !!(window.$ && window.WebSocketFactory && Array.prototype.reduce),
+        isBootstrapPresent = (typeof $().modal == 'function'); // will be used for styling tables if present
 
     // if incompatible return stub to prevent any subsequent application calls from throwing exceptions
     if (!isCompatible) {
-        console.log('Kaazing WebSocket Profiler: Error! Unable to initialise due to missing dependencies.  Requires jQuery, Kaazing JMS client library and ES5');
+        console.log('KAAZING WebSocket Profiler: Error! Unable to initialise due to missing dependencies.  Requires jQuery, Kaazing client library and ES5');
 
-        var stub = function () { console.log('Kaazing WebSocket Profiler: Error! Unsupported method call') };
+        var stub = function () { console.log('KAAZING WebSocket Profiler: Error! Unsupported method call') };
         return {
             initialise: stub,
             setProfileFrequencyMilliseconds: stub,
@@ -47,7 +47,7 @@ Kaazing.webSocketProfiler = (function () {
             setResultsHandler: stub,
             start: stub,
             stop: stub
-            //webSocketFactory: new WebSocketFactory() // TODO: obviously this ain't going to work if there's now WebSocketFactory
+            //webSocketFactory: new WebSocketFactory() // TODO: obviously this ain't going to work if there's no WebSocketFactory!
         };
     }
 
@@ -145,7 +145,7 @@ Kaazing.webSocketProfiler = (function () {
      ****************************************************************/
     var initialise = function (config) {
             debug = config.debug || false;
-            if (debug) { console.log('Kaazing WebSocket Profiler: initialising'); }
+            if (debug) { console.log('KAAZING WebSocket Profiler: initialising'); }
             profileFrequencyMilliseconds = config.profileFrequencyMilliseconds || 2000;
             if (config.intervalSummaryTableContainerID) { intervalSummaryTableContainerIDSelector = '#' + config.intervalSummaryTableContainerID; }
             intervalSummaryHandler = config.intervalSummaryHandler;
@@ -248,7 +248,10 @@ Kaazing.webSocketProfiler = (function () {
                 generateEmptyIntervalSummaryRow;
 
             if (!$container.find('table').length) {
-                $table = $('<table>').addClass('table table-striped'); // if bootstrap css is available
+                $table = $('<table>').attr('id', 'kwpIntervalSummaryTable');
+                if (isBootstrapPresent) {
+                    $table.addClass('table table-striped');
+                }
                 $caption = $('<caption>').text('Network Profiler Session & Interval Summary');
                 $thead = $('<thead>');
                 $tbody = $('<tbody>');
@@ -338,24 +341,29 @@ Kaazing.webSocketProfiler = (function () {
         },
 
         buildResultsTable = function () {
-            var $container = $(resultsTableContainerIDSelector),
-                $table,
-                $caption,
-                $thead,
-                $tbody,
-                $tr,
-                generateEmptyResultsRow = function (userCount) {
-                    $tr = $('<tr>');
-                    $tr.append($('<td>').text(userCount));
-                    $tr.append($('<td>').attr('id', 'kwpResultsIn' + userCount + 'UserProfileSessionMegabytes'));
-                    $tr.append($('<td>').attr('id', 'kwpResultsIn' + userCount + 'UserHourMegabytes'));
-                    $tr.append($('<td>').attr('id', 'kwpResultsIn' + userCount + 'UserDayMegabytes'));
-                    return $tr;
-                };
+            var $container = $(resultsTableContainerIDSelector);
 
+            // only build table if it's not already there
             if (!$container.find('table').length) {
-                $table = $('<table>').addClass('table table-striped'); // if bootstrap css is available
-                $caption = $('<caption>').text('Inbound Data Network Utilisation Projection');
+                var $table,
+                    $caption,
+                    $thead,
+                    $tbody,
+                    $tr,
+                    generateEmptyResultsRow = function (userCount) {
+                        $tr = $('<tr>');
+                        $tr.append($('<td>').text(userCount));
+                        $tr.append($('<td>').attr('id', 'kwpResultsIn' + userCount + 'UserProfileSessionMegabytes'));
+                        $tr.append($('<td>').attr('id', 'kwpResultsIn' + userCount + 'UserHourMegabytes'));
+                        $tr.append($('<td>').attr('id', 'kwpResultsIn' + userCount + 'UserDayMegabytes'));
+                        return $tr;
+                    };
+
+                $table = $('<table>').attr('id', 'kwpResultsTable');
+                if (isBootstrapPresent) {
+                    $table.addClass('table table-striped');
+                }
+                $caption = $('<caption>').text('KAAZING Gateway Downstream Network Utilisation Projection');
                 $thead = $('<thead>');
                 $tbody = $('<tbody>');
 
@@ -392,6 +400,7 @@ Kaazing.webSocketProfiler = (function () {
             populateResultsRow(500);
             populateResultsRow(1000);
             populateResultsRow(10000);
+            $(resultsTableContainerIDSelector).children().fadeIn(1000);
         },
 
         emitResults = function (results) {
@@ -431,18 +440,16 @@ Kaazing.webSocketProfiler = (function () {
         start = function () {
             webSocket = webSocketFactory.wrappedWebSocket; // NB. relies app already setting this as the JmsConnectionFactory's WebSocketFactory, and then calling start() AFTER connection is established
             if (!isInitialised) {
-                console.log('Kaazing WebSocket Profiler: Error! Profiler has not been initialised. Call initialise() before starting.');
+                console.log('KAAZING WebSocket Profiler: Error! Profiler has not been initialised. Call initialise() before starting.');
                 return -1;
             } else if (!webSocket) {
-                console.log('Kaazing WebSocket Profiler: Error! Unable to start - no WebSocket connection available');
+                console.log('KAAZING WebSocket Profiler: Error! Unable to start - no WebSocket connection available');
                 return -2;
             } else {
 
                 // remove results from any previous profiling session
                 if (resultsTableContainerIDSelector) {
-                    $(resultsTableContainerIDSelector).children().fadeOut(function () {
-                        $(resultsTableContainerIDSelector).empty();
-                    });
+                    $(resultsTableContainerIDSelector).children().fadeOut();
                 }
 
                 profileStartTime = Date.now();
@@ -452,7 +459,7 @@ Kaazing.webSocketProfiler = (function () {
                 webSocket.addEventListener('message', webSocketMessageEventListener, false);
                 profile();
                 profileIntervalID = setInterval(profile, profileFrequencyMilliseconds);
-                if (debug) { console.log('Kaazing WebSocket Profiler: profiling started'); }
+                if (debug) { console.log('KAAZING WebSocket Profiler: profiling started'); }
                 return 0;
             }
         },
@@ -461,7 +468,7 @@ Kaazing.webSocketProfiler = (function () {
             if (webSocket) { webSocket.removeEventListener('message', webSocketMessageEventListener, false); }
             if (profileIntervalID) { clearInterval(profileIntervalID); }
             emitResults(generateResults(Date.now() - profileStartTime));
-            if (debug) { console.log('Kaazing WebSocket Profiler: profiling stopped'); }
+            if (debug) { console.log('KAAZING WebSocket Profiler: profiling stopped'); }
         };
 
 
