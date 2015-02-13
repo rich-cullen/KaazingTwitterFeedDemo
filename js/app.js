@@ -15,7 +15,7 @@ $(function () {
         twitterStreamTopicNameFull = 'twitter_stream',
         twitterStreamTopicNameDelta = 'twitter_stream_delta',
         twitterStreamRateControlTopicName = 'twitter_stream_rate_control',
-        logTweets = true, // TODO make configurable
+        logTweets = false, // TODO make configurable
         notificationsTopicName = 'twitter_notifications',
         isSubscribedToTwitterStream = false,
         countries = [],
@@ -345,8 +345,8 @@ $(function () {
             countries[countryIndex].tweets++;
             updateBarChart(countryIndex);
             updatePieChart(countryIndex);
-            if (logTweets && tweet.place.country_code == 'IE') {
-                toastr.warning(tweet.place.country_code + ': @' + tweet.user.screen_name + ': ' + tweet.text);
+            if (logTweets) {
+                //toastr.warning(tweet.place.country_code + ': @' + tweet.user.screen_name + ': ' + tweet.text); // TODO: placeholder for proper tweet display
                 console.log(tweet.place.country_code + ': @' + tweet.user.screen_name + ': ' + tweet.text);
             }
         }

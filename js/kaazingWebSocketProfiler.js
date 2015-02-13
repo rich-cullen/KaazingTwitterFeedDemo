@@ -1,15 +1,15 @@
 /****************************************************************
  *   KAAZING WebSocket Profiler
  ****************************************************************/
-// TODO: convert summary throughput stats to bits not bytes
-// TODO: demo should illustrate tcp.maximum.outbound.rate functionality
+// TODO: demo should illustrate tcp.maximum.upstream.rate functionality
 // TODO: wrapped websocket should be created internally, need to extend the pattern and intercept JmsConnectionFactory.createConnection more intelligently
-// TODO: capture outbound traffic also - easiest way to do this?
-// TODO: add latency probe like in FX demo http://demo.kaazing.com/forex/ - NB. This might require a gateway echo service etc
+// TODO: capture upstream traffic also - easiest way to do this?
 // TODO: handle connectivity breaks
 // TODO: tighten defensive coding in compatibility check stub implementation, initialisation, setters and Array maths helper
+// TODO: Optional-  summary throughput stats to bits not bytes
+// TODO: Optional - add latency probe like in FX demo http://demo.kaazing.com/forex/ - NB. This might require a gateway echo service etc
 // TODO: Optional - This could be a standalone widget and render its own UI buttons - would we want to include bootstrap in that case?
-// TODO: Optional - draw table using DOM API rather than jQuery
+// TODO: Optional - draw tables using DOM API rather than jQuery
 // TODO: When finished - document config, usage and dependencies
 
 /****************************************************************
@@ -137,7 +137,7 @@ Kaazing.webSocketProfiler = (function () {
         debug,
         isInitialised = false,
         bandwidthHistorySize,
-        inboundBandwidthHistory = [];
+        downstreamBandwidthHistory = [];
 
 
     /****************************************************************
@@ -191,11 +191,11 @@ Kaazing.webSocketProfiler = (function () {
             var kilobytesPerSecond = Math.round(100 * totalBytes / profileFrequencyMilliseconds) / 100; // rounded to 2 decimal points
 
             if (bandwidthHistorySize) {
-                if (inboundBandwidthHistory.length >= bandwidthHistorySize) {
-                    inboundBandwidthHistory.shift();
+                if (downstreamBandwidthHistory.length >= bandwidthHistorySize) {
+                    downstreamBandwidthHistory.shift();
                 }
 
-                inboundBandwidthHistory.push({
+                downstreamBandwidthHistory.push({
                     timeSinceStartMilliseconds: Math.floor(Date.now() - profileStartTime),
                     intervalKilobytesPerSecond: kilobytesPerSecond,
                     cumulativeKilobytes: Math.round(100 * cumulativeBytes / 1000) / 100 // rounded to 2 decimal points
@@ -203,7 +203,7 @@ Kaazing.webSocketProfiler = (function () {
             }
 
             var intervalStats = {
-                inbound: {
+                downstream: {
                     intervalPackets: (intervalPackets.length),
                     intervalBytes: (totalBytes),
                     intervalMinPacketSizeBytes: arrayMathUtility.min(sizes),
@@ -212,11 +212,11 @@ Kaazing.webSocketProfiler = (function () {
                     intervalMilliseconds: (profileFrequencyMilliseconds),
                     intervalPacketsPerSecond: (packetsPerSecond),
                     intervalKilobytesPerSecond: (kilobytesPerSecond),
-                    bandWidthHistory: (inboundBandwidthHistory),
+                    bandWidthHistory: (downstreamBandwidthHistory),
                     cumulativePackets: (cumulativePackets),
                     cumulativeBytes: (cumulativeBytes)
                 },
-                outbound: {
+                upstream: {
                     //intervalPackets: 'TODO',
                     //intervalBytes: 'TODO',
                     //intervalMinPacketSizeBytes: 'TODO',
@@ -269,7 +269,7 @@ Kaazing.webSocketProfiler = (function () {
 
                 generateEmptyIntervalSummaryRow = function (flowDirection) {
                     $tr = $('<tr>');
-                    $tr.append($('<td>').text(flowDirection + 'bound'));
+                    $tr.append($('<td>').text(flowDirection + 'stream'));
                     $tr.append($('<td>').attr('id', 'kwpIntSum' + flowDirection + 'TotPackets'));
                     $tr.append($('<td>').attr('id', 'kwpIntSum' + flowDirection + 'TotBytes'));
                     $tr.append($('<td>').attr('id', 'kwpIntSum' + flowDirection + 'PacketsPerSecond'));
@@ -280,8 +280,8 @@ Kaazing.webSocketProfiler = (function () {
                     return $tr
                 };
 
-                $tbody.append(generateEmptyIntervalSummaryRow('In'));
-                $tbody.append(generateEmptyIntervalSummaryRow('Out'));
+                $tbody.append(generateEmptyIntervalSummaryRow('Down'));
+                $tbody.append(generateEmptyIntervalSummaryRow('Up'));
 
                 $table.append($caption);
                 $table.append($thead);
@@ -291,21 +291,21 @@ Kaazing.webSocketProfiler = (function () {
         },
 
         updateIntervalSummaryTable = function (intervalStats) {
-            $('#kwpIntSumInTotPackets').text(intervalStats.inbound.cumulativePackets);
-            $('#kwpIntSumInTotBytes').text(formatUtility.formatBytesHumanReadable(intervalStats.inbound.cumulativeBytes));
-            $('#kwpIntSumInPacketsPerSecond').text(intervalStats.inbound.intervalPacketsPerSecond + ' msg/s');
-            $('#kwpIntSumInMinPacketSize').text(intervalStats.inbound.intervalMinPacketSizeBytes);
-            $('#kwpIntSumInMaxPacketSize').text(intervalStats.inbound.intervalMaxPacketSizeBytes);
-            $('#kwpIntSumInMedianPacketSize').text(intervalStats.inbound.intervalMedianPacketSizeBytes);
-            $('#kwpIntSumInKilobytesPerSecond').text(intervalStats.inbound.intervalKilobytesPerSecond + ' kB/s');
+            $('#kwpIntSumDownTotPackets').text(intervalStats.downstream.cumulativePackets);
+            $('#kwpIntSumDownTotBytes').text(formatUtility.formatBytesHumanReadable(intervalStats.downstream.cumulativeBytes));
+            $('#kwpIntSumDownPacketsPerSecond').text(intervalStats.downstream.intervalPacketsPerSecond + ' msg/s');
+            $('#kwpIntSumDownMinPacketSize').text(intervalStats.downstream.intervalMinPacketSizeBytes);
+            $('#kwpIntSumDownMaxPacketSize').text(intervalStats.downstream.intervalMaxPacketSizeBytes);
+            $('#kwpIntSumDownMedianPacketSize').text(intervalStats.downstream.intervalMedianPacketSizeBytes);
+            $('#kwpIntSumDownKilobytesPerSecond').text(intervalStats.downstream.intervalKilobytesPerSecond + ' kB/s');
 
-            //$('#kwpIntSumOutboundTotPackets').text(intervalStats.outbound.cumulativePackets);
-            //$('#kwpIntSumOutboundTotBytes').text(formatUtility.formatBytesHumanReadable(intervalStats.outbound.cumulativeBytes));
-            //$('#kwpIntSumOutboundPacketsPerSecond').text(intervalStats.outbound.intervalPacketsPerSecond + ' msg/s');
-            //$('#kwpIntSumOutboundMinPacketSize').text(intervalStats.outbound.intervalMinPacketSizeBytes);
-            //$('#kwpIntSumOutboundMaxPacketSize').text(intervalStats.outbound.intervalMaxPacketSizeBytes);
-            //$('#kwpIntSumOutboundMedianPacketSize').text(intervalStats.outbound.intervalMedianPacketSizeBytes);
-            //$('#kwpIntSumOutboundKilobytesPerSecond').text(intervalStats.outbound.intervalKilobytesPerSecond + ' kB/s');
+            //$('#kwpIntSumUpTotPackets').text(intervalStats.upstream.cumulativePackets);
+            //$('#kwpIntSumUpTotBytes').text(formatUtility.formatBytesHumanReadable(intervalStats.upstream.cumulativeBytes));
+            //$('#kwpIntSumUpPacketsPerSecond').text(intervalStats.upstream.intervalPacketsPerSecond + ' msg/s');
+            //$('#kwpIntSumUpMinPacketSize').text(intervalStats.upstream.intervalMinPacketSizeBytes);
+            //$('#kwpIntSumUpMaxPacketSize').text(intervalStats.upstream.intervalMaxPacketSizeBytes);
+            //$('#kwpIntSumUpMedianPacketSize').text(intervalStats.upstream.intervalMedianPacketSizeBytes);
+            //$('#kwpIntSumUpKilobytesPerSecond').text(intervalStats.upstream.intervalKilobytesPerSecond + ' kB/s');
         },
 
         emitIntervalStats = function (intervalStats) {
@@ -353,9 +353,9 @@ Kaazing.webSocketProfiler = (function () {
                     generateEmptyResultsRow = function (userCount) {
                         $tr = $('<tr>');
                         $tr.append($('<td>').text(userCount));
-                        $tr.append($('<td>').attr('id', 'kwpResultsIn' + userCount + 'UserProfileSessionMegabytes'));
-                        $tr.append($('<td>').attr('id', 'kwpResultsIn' + userCount + 'UserHourMegabytes'));
-                        $tr.append($('<td>').attr('id', 'kwpResultsIn' + userCount + 'UserDayMegabytes'));
+                        $tr.append($('<td>').attr('id', 'kwpResultsDown' + userCount + 'UserProfileSessionMegabytes'));
+                        $tr.append($('<td>').attr('id', 'kwpResultsDown' + userCount + 'UserHourMegabytes'));
+                        $tr.append($('<td>').attr('id', 'kwpResultsDown' + userCount + 'UserDayMegabytes'));
                         return $tr;
                     };
 
@@ -369,7 +369,7 @@ Kaazing.webSocketProfiler = (function () {
 
                 $tr = $('<tr>');
                 $tr.append($('<th>').text('Clients'));
-                $tr.append($('<th>').attr('id', 'kwpResultsInPerSessionHeader').text('Per Session'));
+                $tr.append($('<th>').attr('id', 'kwpResultsDownPerSessionHeader').text('Per Session'));
                 $tr.append($('<th>').text('Per Hour'));
                 $tr.append($('<th>').text('Per Day'));
                 $thead.append($tr);
@@ -389,12 +389,12 @@ Kaazing.webSocketProfiler = (function () {
 
         updateResultsTable = function (results) {
             var populateResultsRow = function (userCount) {
-                $('#kwpResultsIn' + userCount + 'UserProfileSessionMegabytes').text(formatUtility.formatBytesHumanReadable(results.bytesProfileSession * userCount));
-                $('#kwpResultsIn' + userCount + 'UserHourMegabytes').text(formatUtility.formatBytesHumanReadable(results.bytesPerHour * userCount));
-                $('#kwpResultsIn' + userCount + 'UserDayMegabytes').text(formatUtility.formatBytesHumanReadable(results.bytesPerDay * userCount));
+                $('#kwpResultsDown' + userCount + 'UserProfileSessionMegabytes').text(formatUtility.formatBytesHumanReadable(results.bytesProfileSession * userCount));
+                $('#kwpResultsDown' + userCount + 'UserHourMegabytes').text(formatUtility.formatBytesHumanReadable(results.bytesPerHour * userCount));
+                $('#kwpResultsDown' + userCount + 'UserDayMegabytes').text(formatUtility.formatBytesHumanReadable(results.bytesPerDay * userCount));
             };
 
-            $('#kwpResultsInPerSessionHeader').text('Per Session (' + results.profileSessionDurationSeconds + ' seconds)');
+            $('#kwpResultsDownPerSessionHeader').text('Per Session (' + results.profileSessionDurationSeconds + ' seconds)');
             populateResultsRow(1);
             populateResultsRow(200);
             populateResultsRow(500);
