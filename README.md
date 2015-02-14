@@ -34,14 +34,6 @@ It is assumed that the gateway will be exposing an unprotected, CORS accessible 
 
 ```xml
 <topic>
-  <name>twitter_stream</name>
-  <message.delivery.strategy>full</message.delivery.strategy>
-  <message.header.expiration>include</message.header.expiration>
-  <message.header.messageID>include</message.header.messageID>
-  <message.header.timestamp>include</message.header.timestamp>
-</topic>
-
-<topic>
   <name>twitter_stream_delta</name>
   <message.delivery.strategy>delta</message.delivery.strategy>
   <message.header.expiration>exclude</message.header.expiration>
