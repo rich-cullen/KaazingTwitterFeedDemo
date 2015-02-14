@@ -4,9 +4,9 @@
 // TODO: wrapped websocket should be created internally, need to extend the pattern and intercept JmsConnectionFactory.createConnection more intelligently
 // TODO: capture upstream traffic also - easiest way to do this?
 // TODO: handle connectivity breaks
-// TODO: add convenience method to tidy up UI if app wants profiler to clear its own UI elements up
 // TODO: tighten defensive coding in compatibility check stub implementation, initialisation, setters and Array maths helper
 // TODO: Optional-  summary throughput stats to bits not bytes
+// TODO: Optional - add convenience method to tidy up UI if app wants profiler to clear its own UI elements up
 // TODO: Optional - add latency probe like in FX demo http://demo.kaazing.com/forex/ - NB. This might require a gateway echo service etc
 // TODO: Optional - This could be a standalone widget and render its own UI buttons - would we want to include bootstrap in that case?
 // TODO: Optional - draw tables using DOM API rather than jQuery
@@ -132,7 +132,7 @@ Kaazing.webSocketProfiler = (function () {
         intervalSummaryHandler = null,
         resultsTableContainerIDSelector,
         resultsHandler = null,
-        includeControlPackets = false,
+        includeControlPackets = true,
         enableLatencyProbe = false,
         debug,
         isInitialised = false,
@@ -151,7 +151,7 @@ Kaazing.webSocketProfiler = (function () {
             intervalSummaryHandler = config.intervalSummaryHandler;
             if (config.resultsTableContainerID) { resultsTableContainerIDSelector = '#' + config.resultsTableContainerID; }
             resultsHandler = config.resultsHandler;
-            includeControlPackets = config.includeControlPackets || false;
+            includeControlPackets = config.includeControlPackets || true;
             bandwidthHistorySize = config.bandwidthHistorySize || 0;
             enableLatencyProbe = config.enableLatencyProbe || false;
             isInitialised = true;
