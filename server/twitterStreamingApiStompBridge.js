@@ -18,12 +18,21 @@ var twit = require('twit'), // https://github.com/ttezel/twit
     publishDestinationDelta = '/topic/twitter_stream_delta',
     publishIntervalId = null,
     publishIntervalMilliseconds = 200, // default to max rate of 5 tweets per second (configurable from the UI)
-    latest_tweet = {},
+    tweetQueue = [],
+    tweetQueueMaxSize = 100,
     twitterStreamingApiFilterParams = { // https://dev.twitter.com/streaming/overview/request-parameters#locations
         // locations : '-170, 25, -65, 70' // roughly geofence USA
         locations : '-15, 35, 45, 65' // roughly geofence western Europe
         // locations : '-180, -90, 180, 90' // entire globe
-    };
+    },
+    // rate testing
+    debug = true,
+    onTweets = 0,
+    publishTweetStarts = 0,
+    publishTweetCompletes = 0,
+    publishTotal = 0,
+    misfires = 0,
+    misfireTotal = 0;
 
 
 // config
@@ -57,8 +66,26 @@ process.on('SIGINT', function() {
 // main prog
 connectToMessageBroker();
 connectToTwitterPublicStream();
-publishIntervalId = setInterval(publishTweet, publishIntervalMilliseconds);
 
+// rate test
+if (debug) {
+    setInterval(displayDebugStats, 1000);
+}
+
+function displayDebugStats() {
+    console.log(Date.now());
+    console.log('onTweets    : ' + onTweets);
+    console.log('publishTweetStarts: ' + publishTweetStarts);
+    console.log('publishTweetCompletes: ' + publishTweetCompletes);
+    console.log('misfires: ' + misfires);
+    console.log('tweetQueue length: ' + tweetQueue.length);
+    console.log('publishTotal: ' + publishTotal);
+    console.log('misfireTotal: ' + misfireTotal);
+    console.log();
+    onTweets = publishTweetStarts = publishTweetCompletes = misfires = 0;
+}
+
+publishIntervalId = setInterval(publishTweet, publishIntervalMilliseconds);
 
 // function definitions
 function connectToMessageBroker() {
@@ -94,14 +121,24 @@ function connectToTwitterPublicStream() {
 }
 
 function publishTweet() {
-    if (isEmptyObject(latest_tweet)) return;
 
-    var stompMessageFull = constructStompTweetMessage(latest_tweet, publishDestinationFull);
-    var stompMessageDelta = constructStompTweetMessage(latest_tweet, publishDestinationDelta);
+    publishTweetStarts++; // rate test
+
+    var tweet = tweetQueue.shift();
+
+    if (tweet === undefined || isEmptyObject(tweet)) {
+        misfires++; // rate test
+        misfireTotal++; // rate test
+        return;
+    }
+
+    var stompMessageFull = constructStompTweetMessage(tweet, publishDestinationFull);
+    var stompMessageDelta = constructStompTweetMessage(tweet, publishDestinationDelta);
     stompClient.send(stompMessageFull, false);
     stompClient.send(stompMessageDelta, false);
 
-    latest_tweet = {};
+    publishTweetCompletes++; // rate test
+    publishTotal++; // rate test
 }
 
 function constructStompTweetMessage(tweet, destination) {
@@ -125,6 +162,16 @@ function constructStompTweetMessage(tweet, destination) {
 
 
 // event handlers
+function onTweet(tweet) {
+    onTweets++; // rate test
+
+    if (tweetQueue.length >= tweetQueueMaxSize) {
+        tweetQueue.shift();
+    }
+
+    tweetQueue.push(tweet);
+}
+
 function onStompMessage(message) {
     if (message.headers.destination == controlDestination) {
 
@@ -159,10 +206,6 @@ function onStompMessage(message) {
     }
 }
 
-function onTweet(tweet) {
-    latest_tweet = tweet;
-}
-
 
 // clean shutdown
 function tidyUp() {
@@ -174,6 +217,10 @@ function tidyUp() {
     if (twitterStream) {
         twitterStream.stop();
         console.log('Disconnected from Twitter stream');
+    }
+
+    if (debug) {
+        displayDebugStats();
     }
 }
 
