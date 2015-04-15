@@ -5668,18 +5668,19 @@ return _694;
 var _69c=(function(){
 var _69d=512*1024;
 var _69e=1;
-var _69f=function(_6a0){
+var _69f=function(_6a0,_6a1){
+this.sequence=_6a1;
 this.retry=3000;
 if(_6a0.indexOf("/;e/dtem/")>0){
 this.requiresEscaping=true;
 }
-var _6a1=new URI(_6a0);
-var _6a2={"http":80,"https":443};
-if(_6a1.port==undefined){
-_6a1.port=_6a2[_6a1.scheme];
-_6a1.authority=_6a1.host+":"+_6a1.port;
+var _6a2=new URI(_6a0);
+var _6a3={"http":80,"https":443};
+if(_6a2.port==undefined){
+_6a2.port=_6a3[_6a2.scheme];
+_6a2.authority=_6a2.host+":"+_6a2.port;
 }
-this.origin=_6a1.scheme+"://"+_6a1.authority;
+this.origin=_6a2.scheme+"://"+_6a2.authority;
 this.location=_6a0;
 this.activeXhr=null;
 this.reconnectTimer=null;
@@ -5687,57 +5688,59 @@ this.idleTimer=null;
 this.idleTimeout=null;
 this.lastMessageTimestamp=null;
 this.buf=new ByteBuffer();
-var _6a3=this;
+var _6a4=this;
 setTimeout(function(){
-connect(_6a3,true);
-_6a3.activeXhr=_6a3.mostRecentXhr;
-startProxyDetectionTimer(_6a3,_6a3.mostRecentXhr);
+connect(_6a4,true);
+_6a4.activeXhr=_6a4.mostRecentXhr;
+startProxyDetectionTimer(_6a4,_6a4.mostRecentXhr);
 },0);
 };
-var _6a4=_69f.prototype;
-var _6a5=0;
-var _6a6=255;
-var _6a7=1;
-var _6a8=128;
-var _6a9=129;
-var _6aa=127;
-var _6ab=137;
-var _6ac=3000;
-_6a4.readyState=0;
-function connect(_6ad,_6ae){
-if(_6ad.reconnectTimer!==null){
-_6ad.reconnectTimer=null;
+var _6a5=_69f.prototype;
+var _6a6=0;
+var _6a7=255;
+var _6a8=1;
+var _6a9=128;
+var _6aa=129;
+var _6ab=127;
+var _6ac=137;
+var _6ad=3000;
+_6a5.readyState=0;
+function connect(_6ae,_6af){
+if(_6ae.reconnectTimer!==null){
+_6ae.reconnectTimer=null;
 }
-stopIdleTimer(_6ad);
-var _6af=new URI(_6ad.location);
-var _6b0=[];
+stopIdleTimer(_6ae);
+var _6b0=new URI(_6ae.location);
+var _6b1=[];
+var _6b2=_6ae.sequence++;
+_6b1.push(".ksn="+_6b2);
 switch(browser){
 case "ie":
-_6b0.push(".kns=1");
-_6b0.push(".kf=200&.kp=2048");
+_6b1.push(".kns=1");
+_6b1.push(".kf=200&.kp=2048");
 break;
 case "safari":
-_6b0.push(".kp=256");
+_6b1.push(".kp=256");
 break;
 case "firefox":
-_6b0.push(".kp=1025");
+_6b1.push(".kp=1025");
 break;
 case "android":
-_6b0.push(".kp=4096");
-_6b0.push(".kbp=4096");
+_6b1.push(".kp=4096");
+_6b1.push(".kbp=4096");
 break;
 }
 if(browser=="android"||browser.ios){
-_6b0.push(".kkt=20");
+_6b1.push(".kkt=20");
 }
-_6b0.push(".kc=text/plain;charset=windows-1252");
-_6b0.push(".kb=4096");
-_6b0.push(".kid="+String(Math.random()).substring(2));
-if(_6b0.length>0){
-if(_6af.query===undefined){
-_6af.query=_6b0.join("&");
+_6b1.push(".kc=text/plain;charset=windows-1252");
+_6b1.push(".kb=4096");
+_6b1.push(".kid="+String(Math.random()).substring(2));
+if(_6b1.length>0){
+if(_6b0.query===undefined){
+_6b0.query=_6b1.join("&");
 }else{
-_6af.query+="&"+_6b0.join("&");
+_6b0.query+="&"+_6b1.join("&");
 }
 }
 var xhr=new XMLHttpRequest0();
@@ -5748,28 +5751,28 @@ xhr.reconnect=false;
 xhr.requestClosing=false;
 xhr.onreadystatechange=function(){
 if(xhr.readyState==3){
-if(_6ad.idleTimer==null){
-var _6b2=xhr.getResponseHeader("X-Idle-Timeout");
-if(_6b2){
-var _6b3=parseInt(_6b2);
-if(_6b3>0){
-_6b3=_6b3*1000;
-_6ad.idleTimeout=_6b3;
-_6ad.lastMessageTimestamp=new Date().getTime();
-startIdleTimer(_6ad,_6b3);
+if(_6ae.idleTimer==null){
+var _6b4=xhr.getResponseHeader("X-Idle-Timeout");
+if(_6b4){
+var _6b5=parseInt(_6b4);
+if(_6b5>0){
+_6b5=_6b5*1000;
+_6ae.idleTimeout=_6b5;
+_6ae.lastMessageTimestamp=new Date().getTime();
+startIdleTimer(_6ae,_6b5);
 }
 }
 }
 }
 };
 xhr.onprogress=function(){
-if(xhr==_6ad.activeXhr&&_6ad.readyState!=2){
-_process(_6ad);
+if(xhr==_6ae.activeXhr&&_6ae.readyState!=2){
+_process(_6ae);
 }
 };
 xhr.onload=function(){
-if(xhr==_6ad.activeXhr&&_6ad.readyState!=2){
-_process(_6ad);
+if(xhr==_6ae.activeXhr&&_6ae.readyState!=2){
+_process(_6ae);
 xhr.onerror=function(){
 };
 xhr.ontimeout=function(){
@@ -5777,28 +5780,28 @@ xhr.ontimeout=function(){
 xhr.onreadystatechange=function(){
 };
 if(!xhr.reconnect){
-doError(_6ad);
+doError(_6ae);
 }else{
 if(xhr.requestClosing){
-doClose(_6ad);
+doClose(_6ae);
 }else{
-if(_6ad.activeXhr==_6ad.mostRecentXhr){
-connect(_6ad);
-_6ad.activeXhr=_6ad.mostRecentXhr;
-startProxyDetectionTimer(_6ad,_6ad.activeXhr);
+if(_6ae.activeXhr==_6ae.mostRecentXhr){
+connect(_6ae);
+_6ae.activeXhr=_6ae.mostRecentXhr;
+startProxyDetectionTimer(_6ae,_6ae.activeXhr);
 }else{
-var _6b4=_6ad.mostRecentXhr;
-_6ad.activeXhr=_6b4;
-switch(_6b4.readyState){
+var _6b6=_6ae.mostRecentXhr;
+_6ae.activeXhr=_6b6;
+switch(_6b6.readyState){
 case 1:
 case 2:
-startProxyDetectionTimer(_6ad,_6b4);
+startProxyDetectionTimer(_6ae,_6b6);
 break;
 case 3:
-_process(_6ad);
+_process(_6ae);
 break;
 case 4:
-_6ad.activeXhr.onload();
+_6ae.activeXhr.onload();
 break;
 default:
 }
@@ -5808,81 +5811,81 @@ default:
 }
 };
 xhr.ontimeout=function(){
-doError(_6ad);
+doError(_6ae);
 };
 xhr.onerror=function(){
-doError(_6ad);
+doError(_6ae);
 };
-xhr.open("GET",_6af.toString(),true);
+xhr.open("GET",_6b0.toString(),true);
 xhr.send("");
-_6ad.mostRecentXhr=xhr;
+_6ae.mostRecentXhr=xhr;
 };
-function startProxyDetectionTimer(_6b5,xhr){
-if(_6b5.location.indexOf(".ki=p")==-1){
+function startProxyDetectionTimer(_6b7,xhr){
+if(_6b7.location.indexOf(".ki=p")==-1){
 setTimeout(function(){
-if(xhr&&xhr.readyState<3&&_6b5.readyState<2){
-if(_6b5.location.indexOf("?")==-1){
-_6b5.location+="?.ki=p";
+if(xhr&&xhr.readyState<3&&_6b7.readyState<2){
+if(_6b7.location.indexOf("?")==-1){
+_6b7.location+="?.ki=p";
 }else{
-_6b5.location+="&.ki=p";
+_6b7.location+="&.ki=p";
 }
-connect(_6b5,false);
+connect(_6b7,false);
 }
-},_6ac);
+},_6ad);
 }
 };
-_6a4.disconnect=function(){
+_6a5.disconnect=function(){
 if(this.readyState!==2){
 _disconnect(this);
 }
 };
-function _disconnect(_6b7){
-if(_6b7.reconnectTimer!==null){
-clearTimeout(_6b7.reconnectTimer);
-_6b7.reconnectTimer=null;
+function _disconnect(_6b9){
+if(_6b9.reconnectTimer!==null){
+clearTimeout(_6b9.reconnectTimer);
+_6b9.reconnectTimer=null;
 }
-stopIdleTimer(_6b7);
-if(_6b7.mostRecentXhr!==null){
-_6b7.mostRecentXhr.onprogress=function(){
+stopIdleTimer(_6b9);
+if(_6b9.mostRecentXhr!==null){
+_6b9.mostRecentXhr.onprogress=function(){
 };
-_6b7.mostRecentXhr.onload=function(){
+_6b9.mostRecentXhr.onload=function(){
 };
-_6b7.mostRecentXhr.onerror=function(){
+_6b9.mostRecentXhr.onerror=function(){
 };
-_6b7.mostRecentXhr.abort();
+_6b9.mostRecentXhr.abort();
 }
-if(_6b7.activeXhr!=_6b7.mostRecentXhr&&_6b7.activeXhr!==null){
-_6b7.activeXhr.onprogress=function(){
+if(_6b9.activeXhr!=_6b9.mostRecentXhr&&_6b9.activeXhr!==null){
+_6b9.activeXhr.onprogress=function(){
 };
-_6b7.activeXhr.onload=function(){
+_6b9.activeXhr.onload=function(){
 };
-_6b7.activeXhr.onerror=function(){
+_6b9.activeXhr.onerror=function(){
 };
-_6b7.activeXhr.abort();
+_6b9.activeXhr.abort();
 }
-_6b7.lineQueue=[];
-_6b7.lastEventId=null;
-_6b7.location=null;
-_6b7.readyState=2;
+_6b9.lineQueue=[];
+_6b9.lastEventId=null;
+_6b9.location=null;
+_6b9.readyState=2;
 };
-function _process(_6b8){
-_6b8.lastMessageTimestamp=new Date().getTime();
-var xhr=_6b8.activeXhr;
-var _6ba=xhr.responseText;
-if(_6ba.length>=_69d){
-if(_6b8.activeXhr==_6b8.mostRecentXhr){
-connect(_6b8,false);
+function _process(_6ba){
+_6ba.lastMessageTimestamp=new Date().getTime();
+var xhr=_6ba.activeXhr;
+var _6bc=xhr.responseText;
+if(_6bc.length>=_69d){
+if(_6ba.activeXhr==_6ba.mostRecentXhr){
+connect(_6ba,false);
 }
 }
-var _6bb=_6ba.slice(xhr.position);
-xhr.position=_6ba.length;
-var buf=_6b8.buf;
-var _6bd=_488.toArray(_6bb,_6b8.requiresEscaping);
-if(_6bd.hasRemainder){
+var _6bd=_6bc.slice(xhr.position);
+xhr.position=_6bc.length;
+var buf=_6ba.buf;
+var _6bf=_488.toArray(_6bd,_6ba.requiresEscaping);
+if(_6bf.hasRemainder){
 xhr.position--;
 }
 buf.position=buf.limit;
-buf.putBytes(_6bd);
+buf.putBytes(_6bf);
 buf.position=0;
 buf.mark();
 parse:
@@ -5892,52 +5895,52 @@ break;
 }
 var type=buf.getUnsigned();
 switch(type&128){
-case _6a5:
-var _6bf=buf.indexOf(_6a6);
-if(_6bf==-1){
+case _6a6:
+var _6c1=buf.indexOf(_6a7);
+if(_6c1==-1){
 break parse;
 }
-var _6c0=buf.array.slice(buf.position,_6bf);
-var data=new ByteBuffer(_6c0);
-var _6c2=_6bf-buf.position;
-buf.skip(_6c2+1);
-buf.mark();
-if(type==_6a7){
-handleCommandFrame(_6b8,data);
-}else{
-dispatchText(_6b8,data.getString(Charset.UTF8));
-}
-break;
-case _6a8:
-case _6a9:
-var _6c3=0;
-var _6c4=false;
-while(buf.hasRemaining()){
-var b=buf.getUnsigned();
-_6c3=_6c3<<7;
-_6c3|=(b&127);
-if((b&128)!=128){
-_6c4=true;
-break;
-}
-}
-if(!_6c4){
-break parse;
-}
-if(buf.remaining()<_6c3){
-break parse;
-}
-var _6c6=buf.array.slice(buf.position,buf.position+_6c3);
-var _6c7=new ByteBuffer(_6c6);
-buf.skip(_6c3);
+var _6c2=buf.array.slice(buf.position,_6c1);
+var data=new ByteBuffer(_6c2);
+var _6c4=_6c1-buf.position;
+buf.skip(_6c4+1);
 buf.mark();
 if(type==_6a8){
-dispatchBytes(_6b8,_6c7);
+handleCommandFrame(_6ba,data);
 }else{
-if(type==_6ab){
-dispatchPingReceived(_6b8);
+dispatchText(_6ba,data.getString(Charset.UTF8));
+}
+break;
+case _6a9:
+case _6aa:
+var _6c5=0;
+var _6c6=false;
+while(buf.hasRemaining()){
+var b=buf.getUnsigned();
+_6c5=_6c5<<7;
+_6c5|=(b&127);
+if((b&128)!=128){
+_6c6=true;
+break;
+}
+}
+if(!_6c6){
+break parse;
+}
+if(buf.remaining()<_6c5){
+break parse;
+}
+var _6c8=buf.array.slice(buf.position,buf.position+_6c5);
+var _6c9=new ByteBuffer(_6c8);
+buf.skip(_6c5);
+buf.mark();
+if(type==_6a9){
+dispatchBytes(_6ba,_6c9);
 }else{
-dispatchText(_6b8,_6c7.getString(Charset.UTF8));
+if(type==_6ac){
+dispatchPingReceived(_6ba);
+}else{
+dispatchText(_6ba,_6c9.getString(Charset.UTF8));
 }
 }
 break;
@@ -5948,149 +5951,150 @@ throw new Error("Emulation protocol error. Unknown frame type: "+type);
 buf.reset();
 buf.compact();
 };
-function handleCommandFrame(_6c8,data){
+function handleCommandFrame(_6ca,data){
 while(data.remaining()){
-var _6ca=String.fromCharCode(data.getUnsigned());
-switch(_6ca){
+var _6cc=String.fromCharCode(data.getUnsigned());
+switch(_6cc){
 case "0":
 break;
 case "1":
-_6c8.activeXhr.reconnect=true;
+_6ca.activeXhr.reconnect=true;
 break;
 case "2":
-_6c8.activeXhr.requestClosing=true;
+_6ca.activeXhr.requestClosing=true;
 break;
 default:
-throw new Error("Protocol decode error. Unknown command: "+_6ca);
+throw new Error("Protocol decode error. Unknown command: "+_6cc);
 }
 }
 };
-function dispatchBytes(_6cb,buf){
+function dispatchBytes(_6cd,buf){
 var e=document.createEvent("Events");
 e.initEvent("message",true,true);
-e.lastEventId=_6cb.lastEventId;
+e.lastEventId=_6cd.lastEventId;
 e.data=buf;
 e.decoder=_2a9;
-e.origin=_6cb.origin;
+e.origin=_6cd.origin;
 if(e.source!==null){
 e.source=null;
 }
-if(typeof (_6cb.onmessage)==="function"){
-_6cb.onmessage(e);
+if(typeof (_6cd.onmessage)==="function"){
+_6cd.onmessage(e);
 }
 };
-function dispatchText(_6ce,data){
+function dispatchText(_6d0,data){
 var e=document.createEvent("Events");
 e.initEvent("message",true,true);
-e.lastEventId=_6ce.lastEventId;
+e.lastEventId=_6d0.lastEventId;
 e.text=data;
-e.origin=_6ce.origin;
+e.origin=_6d0.origin;
 if(e.source!==null){
 e.source=null;
 }
-if(typeof (_6ce.onmessage)==="function"){
-_6ce.onmessage(e);
+if(typeof (_6d0.onmessage)==="function"){
+_6d0.onmessage(e);
 }
 };
-function dispatchPingReceived(_6d1){
-if(typeof (_6d1.onping)==="function"){
-_6d1.onping();
+function dispatchPingReceived(_6d3){
+if(typeof (_6d3.onping)==="function"){
+_6d3.onping();
 }
 };
-function doClose(_6d2){
-doError(_6d2);
+function doClose(_6d4){
+doError(_6d4);
 };
-function doError(_6d3){
-if(_6d3.readyState!=2){
-_6d3.disconnect();
-fireError(_6d3);
+function doError(_6d5){
+if(_6d5.readyState!=2){
+_6d5.disconnect();
+fireError(_6d5);
 }
 };
-function fireError(_6d4){
+function fireError(_6d6){
 var e=document.createEvent("Events");
 e.initEvent("error",true,true);
-if(typeof (_6d4.onerror)==="function"){
-_6d4.onerror(e);
+if(typeof (_6d6.onerror)==="function"){
+_6d6.onerror(e);
 }
 };
-function startIdleTimer(_6d6,_6d7){
-stopIdleTimer(_6d6);
-_6d6.idleTimer=setTimeout(function(){
-idleTimerHandler(_6d6);
-},_6d7);
+function startIdleTimer(_6d8,_6d9){
+stopIdleTimer(_6d8);
+_6d8.idleTimer=setTimeout(function(){
+idleTimerHandler(_6d8);
+},_6d9);
 };
-function idleTimerHandler(_6d8){
-var _6d9=new Date().getTime();
-var _6da=_6d9-_6d8.lastMessageTimestamp;
-var _6db=_6d8.idleTimeout;
-if(_6da>_6db){
-doError(_6d8);
+function idleTimerHandler(_6da){
+var _6db=new Date().getTime();
+var _6dc=_6db-_6da.lastMessageTimestamp;
+var _6dd=_6da.idleTimeout;
+if(_6dc>_6dd){
+doError(_6da);
 }else{
-startIdleTimer(_6d8,_6db-_6da);
+startIdleTimer(_6da,_6dd-_6dc);
 }
 };
-function stopIdleTimer(_6dc){
-if(_6dc.idleTimer!=null){
-clearTimeout(_6dc.idleTimer);
-_6dc.IdleTimer=null;
+function stopIdleTimer(_6de){
+if(_6de.idleTimer!=null){
+clearTimeout(_6de.idleTimer);
+_6de.IdleTimer=null;
 }
 };
 return _69f;
 })();
-var _6dd=(function(){
-var _6de=function(){
+var _6df=(function(){
+var _6e0=function(){
 this.parent;
 this._listener;
 this.closeCode=1005;
 this.closeReason="";
+this.sequence=0;
 };
-var _6df=_6de.prototype;
-_6df.connect=function(_6e0,_6e1){
-this.URL=_6e0.replace("ws","http");
-this.protocol=_6e1;
+var _6e1=_6e0.prototype;
+_6e1.connect=function(_6e2,_6e3){
+this.URL=_6e2.replace("ws","http");
+this.protocol=_6e3;
 this._prepareQueue=new _4e1();
 this._sendQueue=[];
-_6e2(this);
+_6e4(this);
 };
-_6df.readyState=0;
-_6df.bufferedAmount=0;
-_6df.URL="";
-_6df.onopen=function(){
+_6e1.readyState=0;
+_6e1.bufferedAmount=0;
+_6e1.URL="";
+_6e1.onopen=function(){
 };
-_6df.onerror=function(){
+_6e1.onerror=function(){
 };
-_6df.onmessage=function(_6e3){
+_6e1.onmessage=function(_6e5){
 };
-_6df.onclose=function(){
+_6e1.onclose=function(){
 };
-var _6e4=128;
-var _6e5=129;
-var _6e6=0;
-var _6e7=255;
-var _6e8=1;
-var _6e9=138;
-var _6ea=[_6e8,48,49,_6e7];
-var _6eb=[_6e8,48,50,_6e7];
-var _6ec=function(buf,_6ee){
-var _6ef=0;
-var _6f0=0;
+var _6e6=128;
+var _6e7=129;
+var _6e8=0;
+var _6e9=255;
+var _6ea=1;
+var _6eb=138;
+var _6ec=[_6ea,48,49,_6e9];
+var _6ed=[_6ea,48,50,_6e9];
+var _6ee=function(buf,_6f0){
+var _6f1=0;
+var _6f2=0;
 do{
-_6f0<<=8;
-_6f0|=(_6ee&127);
-_6ee>>=7;
-_6ef++;
-}while(_6ee>0);
+_6f2<<=8;
+_6f2|=(_6f0&127);
+_6f0>>=7;
+_6f1++;
+}while(_6f0>0);
 do{
-var _6f1=_6f0&255;
-_6f0>>=8;
-if(_6ef!=1){
-_6f1|=128;
+var _6f3=_6f2&255;
+_6f2>>=8;
+if(_6f1!=1){
+_6f3|=128;
 }
-buf.put(_6f1);
-}while(--_6ef>0);
+buf.put(_6f3);
+}while(--_6f1>0);
 };
-_6df.send=function(data){
-var _6f3=this;
+_6e1.send=function(data){
+var _6f5=this;
 switch(this.readyState){
 case 0:
 throw new Error("INVALID_STATE_ERR");
@@ -6100,30 +6104,30 @@ throw new Error("data is null");
 }
 var buf=new ByteBuffer();
 if(typeof data=="string"){
-var _6f5=new ByteBuffer();
-_6f5.putString(data,Charset.UTF8);
-buf.put(_6e5);
-_6ec(buf,_6f5.position);
-buf.putBytes(_6f5.array);
+var _6f7=new ByteBuffer();
+_6f7.putString(data,Charset.UTF8);
+buf.put(_6e7);
+_6ee(buf,_6f7.position);
+buf.putBytes(_6f7.array);
 }else{
 if(data.constructor==ByteBuffer){
-buf.put(_6e4);
-_6ec(buf,data.remaining());
+buf.put(_6e6);
+_6ee(buf,data.remaining());
 buf.putBuffer(data);
 }else{
 if(data.byteLength){
-buf.put(_6e4);
-_6ec(buf,data.byteLength);
+buf.put(_6e6);
+_6ee(buf,data.byteLength);
 buf.putByteArray(data);
 }else{
 if(data.size){
-var cb=this._prepareQueue.enqueue(function(_6f7){
+var cb=this._prepareQueue.enqueue(function(_6f9){
 var b=new ByteBuffer();
-b.put(_6e4);
-_6ec(b,_6f7.length);
-b.putBytes(_6f7);
+b.put(_6e6);
+_6ee(b,_6f9.length);
+b.putBytes(_6f9);
 b.flip();
-doSend(_6f3,b);
+doSend(_6f5,b);
 });
 BlobUtils.asNumberArray(cb,data);
 return true;
@@ -6134,8 +6138,8 @@ throw new Error("Invalid type for send");
 }
 }
 buf.flip();
-this._prepareQueue.enqueue(function(_6f9){
-doSend(_6f3,buf);
+this._prepareQueue.enqueue(function(_6fb){
+doSend(_6f5,buf);
 })();
 return true;
 case 2:
@@ -6144,29 +6148,29 @@ default:
 throw new Error("INVALID_STATE_ERR");
 }
 };
-_6df.close=function(code,_6fb){
+_6e1.close=function(code,_6fd){
 switch(this.readyState){
 case 0:
-_6fc(this);
+_6fe(this);
 break;
 case 1:
 if(code!=null&&code!=0){
 this.closeCode=code;
-this.closeReason=_6fb;
+this.closeReason=_6fd;
 }
-doSend(this,new ByteBuffer(_6eb));
+doSend(this,new ByteBuffer(_6ed));
 break;
 }
 };
-_6df.setListener=function(_6fd){
-this._listener=_6fd;
+_6e1.setListener=function(_6ff){
+this._listener=_6ff;
 };
-function openUpstream(_6fe){
-if(_6fe.readyState!=1){
+function openUpstream(_700){
+if(_700.readyState!=1){
 return;
 }
-if(_6fe.idleTimer){
-clearTimeout(_6fe.idleTimer);
+if(_700.idleTimer){
+clearTimeout(_700.idleTimer);
 }
 var xdr=new XMLHttpRequest0();
 xdr.onreadystatechange=function(){
@@ -6174,69 +6178,72 @@ if(xdr.readyState==4){
 switch(xdr.status){
 case 200:
 setTimeout(function(){
-doFlush(_6fe);
+doFlush(_700);
 },0);
 break;
 }
 }
 };
 xdr.onload=function(){
-openUpstream(_6fe);
+openUpstream(_700);
 };
-xdr.open("POST",_6fe._upstream+"&.krn="+Math.random(),true);
-_6fe.upstreamXHR=xdr;
-_6fe.idleTimer=setTimeout(function(){
-if(_6fe.upstreamXHR!=null){
-_6fe.upstreamXHR.abort();
+xdr.open("POST",_700._upstream+"&.krn="+Math.random(),true);
+_700.upstreamXHR=xdr;
+_700.idleTimer=setTimeout(function(){
+if(_700.upstreamXHR!=null){
+_700.upstreamXHR.abort();
 }
-openUpstream(_6fe);
+openUpstream(_700);
 },30000);
 };
-function doSend(_700,buf){
-_700.bufferedAmount+=buf.remaining();
-_700._sendQueue.push(buf);
-_702(_700);
-if(!_700._writeSuspended){
-doFlush(_700);
+function doSend(_702,buf){
+_702.bufferedAmount+=buf.remaining();
+_702._sendQueue.push(buf);
+_704(_702);
+if(!_702._writeSuspended){
+doFlush(_702);
 }
 };
-function doFlush(_703){
-var _704=_703._sendQueue;
-var _705=_704.length;
-_703._writeSuspended=(_705>0);
-if(_705>0){
-if(_703.useXDR){
+function doFlush(_705){
+var _706=_705._sendQueue;
+var _707=_706.length;
+_705._writeSuspended=(_707>0);
+if(_707>0){
+var _708=_705.sequence++;
+if(_705.useXDR){
 var out=new ByteBuffer();
-while(_704.length){
-out.putBuffer(_704.shift());
+while(_706.length){
+out.putBuffer(_706.shift());
 }
-out.putBytes(_6ea);
+out.putBytes(_6ec);
 out.flip();
-_703.upstreamXHR.setRequestHeader("Content-Type","text/plain; charset=utf-8");
-_703.upstreamXHR.send(_2c4(out,_703.requiresEscaping));
+_705.upstreamXHR.setRequestHeader("Content-Type","text/plain; charset=utf-8");
+_705.upstreamXHR.setRequestHeader("X-Sequence-No",_708.toString());
+_705.upstreamXHR.send(_2c4(out,_705.requiresEscaping));
 }else{
 var xhr=new XMLHttpRequest0();
-xhr.open("POST",_703._upstream+"&.krn="+Math.random(),true);
+xhr.open("POST",_705._upstream+"&.krn="+Math.random(),true);
 xhr.onreadystatechange=function(){
 if(xhr.readyState==4){
 switch(xhr.status){
 case 200:
 setTimeout(function(){
-doFlush(_703);
+doFlush(_705);
 },0);
 break;
 default:
-_6fc(_703);
+_6fe(_705);
 break;
 }
 }
 };
 var out=new ByteBuffer();
-while(_704.length){
-out.putBuffer(_704.shift());
+while(_706.length){
+out.putBuffer(_706.shift());
 }
-out.putBytes(_6ea);
+out.putBytes(_6ec);
 out.flip();
+xhr.setRequestHeader("X-Sequence-No",_708.toString());
 if(browser=="firefox"){
 if(xhr.sendAsBinary){
 xhr.setRequestHeader("Content-Type","application/octet-stream");
@@ -6246,905 +6253,920 @@ xhr.send(_2c4(out));
 }
 }else{
 xhr.setRequestHeader("Content-Type","text/plain; charset=utf-8");
-xhr.send(_2c4(out,_703.requiresEscaping));
+xhr.send(_2c4(out,_705.requiresEscaping));
 }
 }
 }
-_703.bufferedAmount=0;
-_702(_703);
+_705.bufferedAmount=0;
+_704(_705);
 };
-var _6e2=function(_708){
-var url=new URI(_708.URL);
+var _6e4=function(_70b){
+var url=new URI(_70b.URL);
 url.scheme=url.scheme.replace("ws","http");
 locationURI=new URI((browser=="ie")?document.URL:location.href);
 if(browser=="ie"&&typeof (XDomainRequest)!=="undefined"&&url.scheme===locationURI.scheme){
-_708.useXDR=true;
+_70b.useXDR=true;
 }
 switch(browser){
 case "opera":
-_708.requiresEscaping=true;
+_70b.requiresEscaping=true;
 break;
 case "ie":
-if(!_708.useXDR){
-_708.requiresEscaping=true;
+if(!_70b.useXDR){
+_70b.requiresEscaping=true;
 }else{
 if((typeof (Object.defineProperties)==="undefined")&&(navigator.userAgent.indexOf("MSIE 8")>0)){
-_708.requiresEscaping=true;
+_70b.requiresEscaping=true;
 }else{
-_708.requiresEscaping=false;
+_70b.requiresEscaping=false;
 }
 }
 break;
 default:
-_708.requiresEscaping=false;
+_70b.requiresEscaping=false;
 break;
 }
-var _70a=_708.requiresEscaping?"/;e/ctem":"/;e/ctm";
-url.path=url.path.replace(/[\/]?$/,_70a);
-var _70b=url.toString();
-var _70c=_70b.indexOf("?");
-if(_70c==-1){
-_70b+="?";
+var _70d=_70b.requiresEscaping?"/;e/ctem":"/;e/ctm";
+url.path=url.path.replace(/[\/]?$/,_70d);
+var _70e=url.toString();
+var _70f=_70e.indexOf("?");
+if(_70f==-1){
+_70e+="?";
 }else{
-_70b+="&";
+_70e+="&";
 }
-_70b+=".kn="+String(Math.random()).substring(2);
-var _70d=new XMLHttpRequest0();
-var _70e=false;
-_70d.withCredentials=true;
-_70d.open("GET",_70b,true);
-_70d.setRequestHeader("Content-Type","text/plain; charset=utf-8");
-_70d.setRequestHeader("X-WebSocket-Version","wseb-1.0");
-_70d.setRequestHeader("X-Accept-Commands","ping");
-if(_708.protocol.length){
-var _70f=_708.protocol.join(",");
-_70d.setRequestHeader("X-WebSocket-Protocol",_70f);
+_70e+=".kn="+String(Math.random()).substring(2);
+var _710=new XMLHttpRequest0();
+var _711=false;
+_710.withCredentials=true;
+_710.open("GET",_70e,true);
+_710.setRequestHeader("Content-Type","text/plain; charset=utf-8");
+_710.setRequestHeader("X-WebSocket-Version","wseb-1.0");
+_710.setRequestHeader("X-Accept-Commands","ping");
+var _712=_70b.sequence++;
+_710.setRequestHeader("X-Sequence-No",_712.toString());
+if(_70b.protocol.length){
+var _713=_70b.protocol.join(",");
+_710.setRequestHeader("X-WebSocket-Protocol",_713);
 }
-for(var i=0;i<_708.parent.requestHeaders.length;i++){
-var _711=_708.parent.requestHeaders[i];
-_70d.setRequestHeader(_711.label,_711.value);
+for(var i=0;i<_70b.parent.requestHeaders.length;i++){
+var _715=_70b.parent.requestHeaders[i];
+_710.setRequestHeader(_715.label,_715.value);
 }
-_70d.onredirectallowed=function(_712,_713){
-var _714=_708.parent.parent;
-var _715=_714.getRedirectPolicy();
-if((typeof (_715)!="undefined")&&(_715!=null)){
-if(!_715.isRedirectionAllowed(_712,_713)){
-_70d.statusText=_715.toString()+": Cannot redirect from "+_712+" to "+_713;
-_708.closeCode=1006;
-_708.closeReason=_70d.statusText;
-_708.parent.closeCode=_708.closeCode;
-_708.parent.closeReason=_708.closeReason;
-_708.parent.preventFallback=true;
-doError(_708);
+_710.onredirectallowed=function(_716,_717){
+var _718=_70b.parent.parent;
+var _719=_718.getRedirectPolicy();
+if((typeof (_719)!="undefined")&&(_719!=null)){
+if(!_719.isRedirectionAllowed(_716,_717)){
+_710.statusText=_719.toString()+": Cannot redirect from "+_716+" to "+_717;
+_70b.closeCode=1006;
+_70b.closeReason=_710.statusText;
+_70b.parent.closeCode=_70b.closeCode;
+_70b.parent.closeReason=_70b.closeReason;
+_70b.parent.preventFallback=true;
+doError(_70b);
 return false;
 }
 }
 return true;
 };
-_70d.onreadystatechange=function(){
-switch(_70d.readyState){
+_710.onreadystatechange=function(){
+switch(_710.readyState){
 case 2:
-if(_70d.status==403){
-doError(_708);
+if(_710.status==403){
+doError(_70b);
 }else{
+var _71a=_70b.parent.parent._webSocket.connectTimeout;
+if(_71a==0){
+_71a=5000;
+}
 timer=setTimeout(function(){
-if(!_70e){
-doError(_708);
+if(!_711){
+doError(_70b);
 }
-},5000);
+},_71a);
 }
+break;
+case 3:
 break;
 case 4:
-_70e=true;
-if(_70d.status==401){
-_708._listener.authenticationRequested(_708.parent,_70d._location,_70d.getResponseHeader("WWW-Authenticate"));
+_711=true;
+if(_710.status==401){
+_70b._listener.authenticationRequested(_70b.parent,_710._location,_710.getResponseHeader("WWW-Authenticate"));
 return;
 }
-if(_708.readyState<1){
-if(_70d.status==201){
-var _716=_70d.responseText.split("\n");
-var _717=_716[0];
-var _718=_716[1];
-var _719=new URI(_70d.xhr._location);
-var _71a=new URI(_717);
-var _71b=new URI(_718);
-if(_719.host.toLowerCase()!=_71a.host.toLowerCase()){
+if(_70b.readyState<1){
+if(_710.status==201){
+var _71b=_710.responseText.split("\n");
+var _71c=_71b[0];
+var _71d=_71b[1];
+var _71e=new URI(_710.xhr._location);
+var _71f=new URI(_71c);
+var _720=new URI(_71d);
+if(_71e.host.toLowerCase()!=_71f.host.toLowerCase()){
 throw new Error("Hostname in original URI does not match with the hostname in the upstream URI.");
 }
-if(_719.host.toLowerCase()!=_71b.host.toLowerCase()){
+if(_71e.host.toLowerCase()!=_720.host.toLowerCase()){
 throw new Error("Hostname in original URI does not match with the hostname in the downstream URI.");
 }
-_708._upstream=_719.scheme+"://"+_719.authority+_71a.path;
-_708._downstream=new _69c(_718);
-var _71c=_718.substring(0,_718.indexOf("/;e/"));
-if(_71c!=_708.parent._location.toString().replace("ws","http")){
-_708.parent._redirectUri=_71c;
+_70b._upstream=_71e.scheme+"://"+_71e.authority+_71f.path;
+_70b._downstream=new _69c(_71d,_70b.sequence);
+var _721=_71d.substring(0,_71d.indexOf("/;e/"));
+if(_721!=_70b.parent._location.toString().replace("ws","http")){
+_70b.parent._redirectUri=_721;
 }
-_71d(_708,_708._downstream);
-_708.parent.responseHeaders=_70d.getAllResponseHeaders();
-_71e(_708);
+_722(_70b,_70b._downstream);
+_70b.parent.responseHeaders=_710.getAllResponseHeaders();
+_723(_70b);
 }else{
-doError(_708);
+doError(_70b);
 }
 }
 break;
 }
 };
-_70d.send(null);
+_710.send(null);
 };
-var _71e=function(_71f){
-_71f.readyState=1;
-var _720=_71f.parent;
-_720._acceptedProtocol=_720.responseHeaders["X-WebSocket-Protocol"]||"";
-if(_71f.useXDR){
+var _723=function(_724){
+_724.readyState=1;
+var _725=_724.parent;
+_725._acceptedProtocol=_725.responseHeaders["X-WebSocket-Protocol"]||"";
+if(_724.useXDR){
 this.upstreamXHR=null;
-openUpstream(_71f);
+openUpstream(_724);
 }
-_71f._listener.connectionOpened(_71f.parent,_720._acceptedProtocol);
+_724._listener.connectionOpened(_724.parent,_725._acceptedProtocol);
 };
-function doError(_721){
-if(_721.readyState<2){
-_721.readyState=2;
-if(_721.idleTimer){
-clearTimeout(_721.idleTimer);
+function doError(_726){
+if(_726.readyState<2){
+_726.readyState=2;
+if(_726.idleTimer){
+clearTimeout(_726.idleTimer);
 }
-if(_721.upstreamXHR!=null){
-_721.upstreamXHR.abort();
+if(_726.upstreamXHR!=null){
+_726.upstreamXHR.abort();
 }
-if(_721.onerror!=null){
-_721._listener.connectionFailed(_721.parent);
+if(_726.onerror!=null){
+_726._listener.connectionFailed(_726.parent);
 }
 }
 };
-var _6fc=function(_722,_723,code,_725){
-switch(_722.readyState){
+var _6fe=function(_727,_728,code,_72a){
+switch(_727.readyState){
 case 2:
 break;
 case 0:
 case 1:
-_722.readyState=WebSocket.CLOSED;
-if(_722.idleTimer){
-clearTimeout(_722.idleTimer);
+_727.readyState=WebSocket.CLOSED;
+if(_727.idleTimer){
+clearTimeout(_727.idleTimer);
 }
-if(_722.upstreamXHR!=null){
-_722.upstreamXHR.abort();
+if(_727.upstreamXHR!=null){
+_727.upstreamXHR.abort();
 }
-if(typeof _723==="undefined"){
-_722._listener.connectionClosed(_722.parent,true,1005,"");
+if(typeof _728==="undefined"){
+_727._listener.connectionClosed(_727.parent,true,1005,"");
 }else{
-_722._listener.connectionClosed(_722.parent,_723,code,_725);
+_727._listener.connectionClosed(_727.parent,_728,code,_72a);
 }
 break;
 default:
 }
 };
-var _702=function(_726){
+var _704=function(_72b){
 };
-var _727=function(_728,_729){
-if(_729.text){
-_728._listener.textMessageReceived(_728.parent,_729.text);
+var _72c=function(_72d,_72e){
+if(_72e.text){
+_72d._listener.textMessageReceived(_72d.parent,_72e.text);
 }else{
-if(_729.data){
-_728._listener.binaryMessageReceived(_728.parent,_729.data);
+if(_72e.data){
+_72d._listener.binaryMessageReceived(_72d.parent,_72e.data);
 }
 }
 };
-var _72a=function(_72b){
-var _72c=ByteBuffer.allocate(2);
-_72c.put(_6e9);
-_72c.put(0);
-_72c.flip();
-doSend(_72b,_72c);
+var _72f=function(_730){
+var _731=ByteBuffer.allocate(2);
+_731.put(_6eb);
+_731.put(0);
+_731.flip();
+doSend(_730,_731);
 };
-var _71d=function(_72d,_72e){
-_72e.onmessage=function(_72f){
-switch(_72f.type){
+var _722=function(_732,_733){
+_733.onmessage=function(_734){
+switch(_734.type){
 case "message":
-if(_72d.readyState==1){
-_727(_72d,_72f);
+if(_732.readyState==1){
+_72c(_732,_734);
 }
 break;
 }
 };
-_72e.onping=function(){
-if(_72d.readyState==1){
-_72a(_72d);
+_733.onping=function(){
+if(_732.readyState==1){
+_72f(_732);
 }
 };
-_72e.onerror=function(){
+_733.onerror=function(){
 try{
-_72e.disconnect();
+_733.disconnect();
 }
 finally{
-_6fc(_72d,true,_72d.closeCode,_72d.closeReason);
+_6fe(_732,true,_732.closeCode,_732.closeReason);
 }
 };
-_72e.onclose=function(_730){
+_733.onclose=function(_735){
 try{
-_72e.disconnect();
+_733.disconnect();
 }
 finally{
-_6fc(_72d,true,this.closeCode,this.closeReason);
+_6fe(_732,true,this.closeCode,this.closeReason);
 }
 };
 };
-return _6de;
+return _6e0;
 })();
-var _731=(function(){
-var _732=function(){
+var _736=(function(){
+var _737=function(){
 };
-var _733=_732.prototype=new _527();
-_733.processConnect=function(_734,uri,_736){
-if(_734.readyState==WebSocket.CLOSED){
+var _738=_737.prototype=new _527();
+_738.processConnect=function(_739,uri,_73b){
+if(_739.readyState==WebSocket.CLOSED){
 throw new Error("WebSocket is already closed");
 }
-var _737=!!window.MockWseTransport?new MockWseTransport():new _6dd();
-_737.parent=_734;
-_734._delegate=_737;
-_738(_737,this);
-_737.connect(uri.toString(),_736);
+var _73c=!!window.MockWseTransport?new MockWseTransport():new _6df();
+_73c.parent=_739;
+_739._delegate=_73c;
+_73d(_73c,this);
+_73c.connect(uri.toString(),_73b);
 };
-_733.processTextMessage=function(_739,text){
-if(_739.readyState==WebSocket.OPEN){
-_739._delegate.send(text);
+_738.processTextMessage=function(_73e,text){
+if(_73e.readyState==WebSocket.OPEN){
+_73e._delegate.send(text);
 }else{
 throw new Error("WebSocket is already closed");
 }
 };
-_733.processBinaryMessage=function(_73b,obj){
-if(_73b.readyState==WebSocket.OPEN){
-_73b._delegate.send(obj);
+_738.processBinaryMessage=function(_740,obj){
+if(_740.readyState==WebSocket.OPEN){
+_740._delegate.send(obj);
 }else{
 throw new Error("WebSocket is already closed");
 }
 };
-_733.processClose=function(_73d,code,_73f){
+_738.processClose=function(_742,code,_744){
 try{
-_73d._delegate.close(code,_73f);
+_742._delegate.close(code,_744);
 }
 catch(e){
-listener.connectionClosed(_73d);
+listener.connectionClosed(_742);
 }
 };
-var _738=function(_740,_741){
-var _742=new _53a(_741);
-_740.setListener(_742);
+var _73d=function(_745,_746){
+var _747=new _53a(_746);
+_745.setListener(_747);
 };
-return _732;
+return _737;
 })();
-var _743=(function(){
-var _744=function(){
+var _748=(function(){
+var _749=function(){
 };
-var _745=_744.prototype=new _527();
-_745.handleClearAuthenticationData=function(_746){
-if(_746._challengeResponse!=null){
-_746._challengeResponse.clearCredentials();
+var _74a=_749.prototype=new _527();
+_74a.handleClearAuthenticationData=function(_74b){
+if(_74b._challengeResponse!=null){
+_74b._challengeResponse.clearCredentials();
 }
 };
-_745.handleRemoveAuthenticationData=function(_747){
-this.handleClearAuthenticationData(_747);
-_747._challengeResponse=new ChallengeResponse(null,null);
+_74a.handleRemoveAuthenticationData=function(_74c){
+this.handleClearAuthenticationData(_74c);
+_74c._challengeResponse=new ChallengeResponse(null,null);
 };
-_745.handle401=function(_748,_749,_74a){
-var _74b=this;
-var _74c=null;
-if(typeof (_748.parent.connectTimer)!="undefined"){
-_74c=_748.parent.connectTimer;
-if(_74c!=null){
-_74c.pause();
+_74a.handle401=function(_74d,_74e,_74f){
+var _750=this;
+var _751=null;
+if(typeof (_74d.parent.connectTimer)!="undefined"){
+_751=_74d.parent.connectTimer;
+if(_751!=null){
+_751.pause();
 }
 }
-if(_550.KAAZING_SEC_EXTENSION_REVALIDATE==_74a){
-var _74d=new _5a7(_748);
-_748.challengeHandler=_748.parent.challengeHandler;
-_74d.connect(_749);
+if(_550.KAAZING_SEC_EXTENSION_REVALIDATE==_74f){
+var _752=new _5a7(_74d);
+_74d.challengeHandler=_74d.parent.challengeHandler;
+_752.connect(_74e);
 }else{
-var _74e=_749;
-if(_74e.indexOf("/;e/")>0){
-_74e=_74e.substring(0,_74e.indexOf("/;e/"));
+var _753=_74e;
+if(_753.indexOf("/;e/")>0){
+_753=_753.substring(0,_753.indexOf("/;e/"));
 }
-var _74f=new _4f9(_74e.replace("http","ws"));
-var _750=new ChallengeRequest(_74e,_74a);
-var _751;
-if(_748._challengeResponse.nextChallengeHandler!=null){
-_751=_748._challengeResponse.nextChallengeHandler;
+var _754=new _4f9(_753.replace("http","ws"));
+var _755=new ChallengeRequest(_753,_74f);
+var _756;
+if(_74d._challengeResponse.nextChallengeHandler!=null){
+_756=_74d._challengeResponse.nextChallengeHandler;
 }else{
-_751=_748.parent.challengeHandler;
+_756=_74d.parent.challengeHandler;
 }
-if(_751!=null&&_751.canHandle(_750)){
-_751.handle(_750,function(_752){
+if(_756!=null&&_756.canHandle(_755)){
+_756.handle(_755,function(_757){
 try{
-if(_752==null||_752.credentials==null){
-_74b.handleClearAuthenticationData(_748);
-_74b._listener.connectionFailed(_748);
+if(_757==null||_757.credentials==null){
+_750.handleClearAuthenticationData(_74d);
+_750._listener.connectionFailed(_74d);
 }else{
-if(_74c!=null){
-_74c.resume();
+if(_751!=null){
+_751.resume();
 }
-_748._challengeResponse=_752;
-_74b.processConnect(_748,_74f,_748._protocol);
+_74d._challengeResponse=_757;
+_750.processConnect(_74d,_754,_74d._protocol);
 }
 }
 catch(e){
-_74b.handleClearAuthenticationData(_748);
-_74b._listener.connectionFailed(_748);
+_750.handleClearAuthenticationData(_74d);
+_750._listener.connectionFailed(_74d);
 }
 });
 }else{
-this.handleClearAuthenticationData(_748);
-this._listener.connectionFailed(_748);
+this.handleClearAuthenticationData(_74d);
+this._listener.connectionFailed(_74d);
 }
 }
 };
-_745.processConnect=function(_753,_754,_755){
-if(_753._challengeResponse!=null&&_753._challengeResponse.credentials!=null){
-var _756=_753._challengeResponse.credentials.toString();
-for(var i=_753.requestHeaders.length-1;i>=0;i--){
-if(_753.requestHeaders[i].label==="Authorization"){
-_753.requestHeaders.splice(i,1);
+_74a.processConnect=function(_758,_759,_75a){
+if(_758._challengeResponse!=null&&_758._challengeResponse.credentials!=null){
+var _75b=_758._challengeResponse.credentials.toString();
+for(var i=_758.requestHeaders.length-1;i>=0;i--){
+if(_758.requestHeaders[i].label==="Authorization"){
+_758.requestHeaders.splice(i,1);
 }
 }
-var _758=new _4eb("Authorization",_756);
-for(var i=_753.requestHeaders.length-1;i>=0;i--){
-if(_753.requestHeaders[i].label==="Authorization"){
-_753.requestHeaders.splice(i,1);
+var _75d=new _4eb("Authorization",_75b);
+for(var i=_758.requestHeaders.length-1;i>=0;i--){
+if(_758.requestHeaders[i].label==="Authorization"){
+_758.requestHeaders.splice(i,1);
 }
 }
-_753.requestHeaders.push(_758);
-this.handleClearAuthenticationData(_753);
+_758.requestHeaders.push(_75d);
+this.handleClearAuthenticationData(_758);
 }
-this._nextHandler.processConnect(_753,_754,_755);
+this._nextHandler.processConnect(_758,_759,_75a);
 };
-_745.handleAuthenticate=function(_759,_75a,_75b){
-_759.authenticationReceived=true;
-this.handle401(_759,_75a,_75b);
+_74a.handleAuthenticate=function(_75e,_75f,_760){
+_75e.authenticationReceived=true;
+this.handle401(_75e,_75f,_760);
 };
-_745.setNextHandler=function(_75c){
-this._nextHandler=_75c;
-var _75d=new _53a(this);
-var _75e=this;
-_75d.authenticationRequested=function(_75f,_760,_761){
-_75e.handleAuthenticate(_75f,_760,_761);
+_74a.setNextHandler=function(_761){
+this._nextHandler=_761;
+var _762=new _53a(this);
+var _763=this;
+_762.authenticationRequested=function(_764,_765,_766){
+_763.handleAuthenticate(_764,_765,_766);
 };
-_75c.setListener(_75d);
+_761.setListener(_762);
 };
-_745.setListener=function(_762){
-this._listener=_762;
+_74a.setListener=function(_767){
+this._listener=_767;
 };
-return _744;
+return _749;
 })();
-var _763=(function(){
-var _764=new _743();
-var _765=new _56a();
-var _766=new _731();
-var _767=function(){
-this.setNextHandler(_764);
-_764.setNextHandler(_765);
-_765.setNextHandler(_766);
+var _768=(function(){
+var _769=new _748();
+var _76a=new _56a();
+var _76b=new _736();
+var _76c=function(){
+this.setNextHandler(_769);
+_769.setNextHandler(_76a);
+_76a.setNextHandler(_76b);
 };
-var _768=_767.prototype=new _527();
-_768.processConnect=function(_769,_76a,_76b){
-var _76c=[];
-for(var i=0;i<_76b.length;i++){
-_76c.push(_76b[i]);
+var _76d=_76c.prototype=new _527();
+_76d.processConnect=function(_76e,_76f,_770){
+var _771=[];
+for(var i=0;i<_770.length;i++){
+_771.push(_770[i]);
 }
-var _76e=_769._extensions;
-if(_76e.length>0){
-_769.requestHeaders.push(new _4eb(_550.HEADER_SEC_EXTENSIONS,_76e.join(";")));
+var _773=_76e._extensions;
+if(_773.length>0){
+_76e.requestHeaders.push(new _4eb(_550.HEADER_SEC_EXTENSIONS,_773.join(";")));
 }
-this._nextHandler.processConnect(_769,_76a,_76c);
+this._nextHandler.processConnect(_76e,_76f,_771);
 };
-_768.setNextHandler=function(_76f){
-this._nextHandler=_76f;
-var _770=this;
-var _771=new _53a(this);
-_771.commandMessageReceived=function(_772,_773){
-if(_773=="CloseCommandMessage"&&_772.readyState==1){
+_76d.setNextHandler=function(_774){
+this._nextHandler=_774;
+var _775=this;
+var _776=new _53a(this);
+_776.commandMessageReceived=function(_777,_778){
+if(_778=="CloseCommandMessage"&&_777.readyState==1){
 }
-_770._listener.commandMessageReceived(_772,_773);
+_775._listener.commandMessageReceived(_777,_778);
 };
-_76f.setListener(_771);
+_774.setListener(_776);
 };
-_768.setListener=function(_774){
-this._listener=_774;
+_76d.setListener=function(_779){
+this._listener=_779;
 };
-return _767;
+return _76c;
 })();
-var _775=(function(){
-var _776=function(){
+var _77a=(function(){
+var _77b=function(){
 };
-var _777=_776.prototype=new _527();
-_777.processConnect=function(_778,uri,_77a){
-if(_778.readyState==2){
+var _77c=_77b.prototype=new _527();
+_77c.processConnect=function(_77d,uri,_77f){
+if(_77d.readyState==2){
 throw new Error("WebSocket is already closed");
 }
-var _77b=new _306();
-_77b.parent=_778;
-_778._delegate=_77b;
-_77c(_77b,this);
-_77b.connect(uri.toString(),_77a);
+var _780=new _306();
+_780.parent=_77d;
+_77d._delegate=_780;
+_781(_780,this);
+_780.connect(uri.toString(),_77f);
 };
-_777.processTextMessage=function(_77d,text){
-if(_77d.readyState==1){
-_77d._delegate.send(text);
+_77c.processTextMessage=function(_782,text){
+if(_782.readyState==1){
+_782._delegate.send(text);
 }else{
 throw new Error("WebSocket is already closed");
 }
 };
-_777.processBinaryMessage=function(_77f,_780){
-if(_77f.readyState==1){
-_77f._delegate.send(_780);
+_77c.processBinaryMessage=function(_784,_785){
+if(_784.readyState==1){
+_784._delegate.send(_785);
 }else{
 throw new Error("WebSocket is already closed");
 }
 };
-_777.processClose=function(_781,code,_783){
-_781._delegate.close(code,_783);
+_77c.processClose=function(_786,code,_788){
+_786._delegate.close(code,_788);
 };
-var _77c=function(_784,_785){
-var _786=new _53a(_785);
-_784.setListener(_786);
-_786.redirected=function(_787,_788){
-_787._redirectUri=_788;
+var _781=function(_789,_78a){
+var _78b=new _53a(_78a);
+_789.setListener(_78b);
+_78b.redirected=function(_78c,_78d){
+_78c._redirectUri=_78d;
 };
 };
-return _776;
+return _77b;
 })();
-var _789=(function(){
-var _78a=function(){
-var _78b=new _743();
-return _78b;
+var _78e=(function(){
+var _78f=function(){
+var _790=new _748();
+return _790;
 };
-var _78c=function(){
-var _78d=new _56a();
-return _78d;
+var _791=function(){
+var _792=new _56a();
+return _792;
 };
-var _78e=function(){
-var _78f=new _775();
-return _78f;
-};
-var _790=_78a();
-var _791=_78c();
-var _792=_78e();
 var _793=function(){
-this.setNextHandler(_790);
-_790.setNextHandler(_791);
-_791.setNextHandler(_792);
+var _794=new _77a();
+return _794;
 };
-var _794=_793.prototype=new _527();
-_794.processConnect=function(_795,_796,_797){
-var _798=[_550.KAAZING_EXTENDED_HANDSHAKE];
-for(var i=0;i<_797.length;i++){
-_798.push(_797[i]);
+var _795=_78f();
+var _796=_791();
+var _797=_793();
+var _798=function(){
+this.setNextHandler(_795);
+_795.setNextHandler(_796);
+_796.setNextHandler(_797);
+};
+var _799=_798.prototype=new _527();
+_799.processConnect=function(_79a,_79b,_79c){
+var _79d=[_550.KAAZING_EXTENDED_HANDSHAKE];
+for(var i=0;i<_79c.length;i++){
+_79d.push(_79c[i]);
 }
-var _79a=_795._extensions;
-if(_79a.length>0){
-_795.requestHeaders.push(new _4eb(_550.HEADER_SEC_EXTENSIONS,_79a.join(";")));
+var _79f=_79a._extensions;
+if(_79f.length>0){
+_79a.requestHeaders.push(new _4eb(_550.HEADER_SEC_EXTENSIONS,_79f.join(";")));
 }
-this._nextHandler.processConnect(_795,_796,_798);
+this._nextHandler.processConnect(_79a,_79b,_79d);
 };
-_794.setNextHandler=function(_79b){
-this._nextHandler=_79b;
-var _79c=new _53a(this);
-_79b.setListener(_79c);
+_799.setNextHandler=function(_7a0){
+this._nextHandler=_7a0;
+var _7a1=new _53a(this);
+_7a0.setListener(_7a1);
 };
-_794.setListener=function(_79d){
-this._listener=_79d;
+_799.setListener=function(_7a2){
+this._listener=_7a2;
 };
-return _793;
+return _798;
 })();
-var _79e=(function(){
-var _79f;
-var _7a0=function(){
-_79f=this;
+var _7a3=(function(){
+var _7a4;
+var _7a5=function(){
+_7a4=this;
 };
-var _7a1=_7a0.prototype=new _527();
-_7a1.processConnect=function(_7a2,uri,_7a4){
-if(_7a2.readyState==2){
+var _7a6=_7a5.prototype=new _527();
+_7a6.processConnect=function(_7a7,uri,_7a9){
+if(_7a7.readyState==2){
 throw new Error("WebSocket is already closed");
 }
-var _7a5=new _336();
-_7a5.parent=_7a2;
-_7a2._delegate=_7a5;
-_7a6(_7a5,this);
-_7a5.connect(uri.toString(),_7a4);
+var _7aa=new _336();
+_7aa.parent=_7a7;
+_7a7._delegate=_7aa;
+_7ab(_7aa,this);
+_7aa.connect(uri.toString(),_7a9);
 };
-_7a1.processTextMessage=function(_7a7,text){
-if(_7a7.readyState==1){
-_7a7._delegate.send(text);
+_7a6.processTextMessage=function(_7ac,text){
+if(_7ac.readyState==1){
+_7ac._delegate.send(text);
 }else{
 throw new Error("WebSocket is already closed");
 }
 };
-_7a1.processBinaryMessage=function(_7a9,_7aa){
-if(_7a9.readyState==1){
-_7a9._delegate.send(_7aa);
+_7a6.processBinaryMessage=function(_7ae,_7af){
+if(_7ae.readyState==1){
+_7ae._delegate.send(_7af);
 }else{
 throw new Error("WebSocket is already closed");
 }
 };
-_7a1.processClose=function(_7ab,code,_7ad){
-_7ab._delegate.close(code,_7ad);
+_7a6.processClose=function(_7b0,code,_7b2){
+_7b0._delegate.close(code,_7b2);
 };
-var _7a6=function(_7ae,_7af){
-var _7b0=new _53a(_7af);
-_7b0.redirected=function(_7b1,_7b2){
-_7b1._redirectUri=_7b2;
+var _7ab=function(_7b3,_7b4){
+var _7b5=new _53a(_7b4);
+_7b5.redirected=function(_7b6,_7b7){
+_7b6._redirectUri=_7b7;
 };
-_7ae.setListener(_7b0);
+_7b3.setListener(_7b5);
 };
-return _7a0;
+return _7a5;
 })();
-var _7b3=(function(){
-var _7b4=function(){
-var _7b5=new _743();
-return _7b5;
+var _7b8=(function(){
+var _7b9=function(){
+var _7ba=new _748();
+return _7ba;
 };
-var _7b6=function(){
-var _7b7=new _56a();
-return _7b7;
+var _7bb=function(){
+var _7bc=new _56a();
+return _7bc;
 };
-var _7b8=function(){
-var _7b9=new _79e();
-return _7b9;
-};
-var _7ba=_7b4();
-var _7bb=_7b6();
-var _7bc=_7b8();
 var _7bd=function(){
-this.setNextHandler(_7ba);
-_7ba.setNextHandler(_7bb);
-_7bb.setNextHandler(_7bc);
+var _7be=new _7a3();
+return _7be;
 };
-var _7be=function(_7bf,_7c0){
+var _7bf=_7b9();
+var _7c0=_7bb();
+var _7c1=_7bd();
+var _7c2=function(){
+this.setNextHandler(_7bf);
+_7bf.setNextHandler(_7c0);
+_7c0.setNextHandler(_7c1);
 };
-var _7c1=_7bd.prototype=new _527();
-_7c1.setNextHandler=function(_7c2){
-this._nextHandler=_7c2;
-var _7c3=new _53a(this);
-_7c2.setListener(_7c3);
+var _7c3=function(_7c4,_7c5){
 };
-_7c1.setListener=function(_7c4){
-this._listener=_7c4;
+var _7c6=_7c2.prototype=new _527();
+_7c6.setNextHandler=function(_7c7){
+this._nextHandler=_7c7;
+var _7c8=new _53a(this);
+_7c7.setListener(_7c8);
 };
-return _7bd;
+_7c6.setListener=function(_7c9){
+this._listener=_7c9;
+};
+return _7c2;
 })();
-var _7c5=(function(){
-var _7c6=function(){
+var _7ca=(function(){
+var _7cb=function(){
 };
-var _7c7=_7c6.prototype=new _527();
-_7c7.processConnect=function(_7c8,uri,_7ca){
-if(_7c8.readyState==WebSocket.CLOSED){
+var _7cc=_7cb.prototype=new _527();
+_7cc.processConnect=function(_7cd,uri,_7cf){
+if(_7cd.readyState==WebSocket.CLOSED){
 throw new Error("WebSocket is already closed");
 }
-this._nextHandler.processConnect(_7c8,uri,_7ca);
+this._nextHandler.processConnect(_7cd,uri,_7cf);
 };
-_7c7.handleConnectionOpened=function(_7cb,_7cc){
-var _7cd=_7cb;
-if(_7cd.readyState==WebSocket.CONNECTING){
-_7cd.readyState=WebSocket.OPEN;
-this._listener.connectionOpened(_7cb,_7cc);
+_7cc.handleConnectionOpened=function(_7d0,_7d1){
+var _7d2=_7d0;
+if(_7d2.readyState==WebSocket.CONNECTING){
+_7d2.readyState=WebSocket.OPEN;
+this._listener.connectionOpened(_7d0,_7d1);
 }
 };
-_7c7.handleMessageReceived=function(_7ce,_7cf){
-if(_7ce.readyState!=WebSocket.OPEN){
+_7cc.handleMessageReceived=function(_7d3,_7d4){
+if(_7d3.readyState!=WebSocket.OPEN){
 return;
 }
-this._listener.textMessageReceived(_7ce,_7cf);
+this._listener.textMessageReceived(_7d3,_7d4);
 };
-_7c7.handleBinaryMessageReceived=function(_7d0,_7d1){
-if(_7d0.readyState!=WebSocket.OPEN){
+_7cc.handleBinaryMessageReceived=function(_7d5,_7d6){
+if(_7d5.readyState!=WebSocket.OPEN){
 return;
 }
-this._listener.binaryMessageReceived(_7d0,_7d1);
+this._listener.binaryMessageReceived(_7d5,_7d6);
 };
-_7c7.handleConnectionClosed=function(_7d2,_7d3,code,_7d5){
-var _7d6=_7d2;
-if(_7d6.readyState!=WebSocket.CLOSED){
-_7d6.readyState=WebSocket.CLOSED;
-this._listener.connectionClosed(_7d2,_7d3,code,_7d5);
+_7cc.handleConnectionClosed=function(_7d7,_7d8,code,_7da){
+var _7db=_7d7;
+if(_7db.readyState!=WebSocket.CLOSED){
+_7db.readyState=WebSocket.CLOSED;
+this._listener.connectionClosed(_7d7,_7d8,code,_7da);
 }
 };
-_7c7.handleConnectionFailed=function(_7d7){
-if(_7d7.readyState!=WebSocket.CLOSED){
-_7d7.readyState=WebSocket.CLOSED;
-this._listener.connectionFailed(_7d7);
+_7cc.handleConnectionFailed=function(_7dc){
+if(_7dc.readyState!=WebSocket.CLOSED){
+_7dc.readyState=WebSocket.CLOSED;
+this._listener.connectionFailed(_7dc);
 }
 };
-_7c7.handleConnectionError=function(_7d8,e){
-this._listener.connectionError(_7d8,e);
+_7cc.handleConnectionError=function(_7dd,e){
+this._listener.connectionError(_7dd,e);
 };
-_7c7.setNextHandler=function(_7da){
-this._nextHandler=_7da;
-var _7db={};
-var _7dc=this;
-_7db.connectionOpened=function(_7dd,_7de){
-_7dc.handleConnectionOpened(_7dd,_7de);
+_7cc.setNextHandler=function(_7df){
+this._nextHandler=_7df;
+var _7e0={};
+var _7e1=this;
+_7e0.connectionOpened=function(_7e2,_7e3){
+_7e1.handleConnectionOpened(_7e2,_7e3);
 };
-_7db.redirected=function(_7df,_7e0){
+_7e0.redirected=function(_7e4,_7e5){
 throw new Error("invalid event received");
 };
-_7db.authenticationRequested=function(_7e1,_7e2,_7e3){
+_7e0.authenticationRequested=function(_7e6,_7e7,_7e8){
 throw new Error("invalid event received");
 };
-_7db.textMessageReceived=function(_7e4,buf){
-_7dc.handleMessageReceived(_7e4,buf);
+_7e0.textMessageReceived=function(_7e9,buf){
+_7e1.handleMessageReceived(_7e9,buf);
 };
-_7db.binaryMessageReceived=function(_7e6,buf){
-_7dc.handleBinaryMessageReceived(_7e6,buf);
+_7e0.binaryMessageReceived=function(_7eb,buf){
+_7e1.handleBinaryMessageReceived(_7eb,buf);
 };
-_7db.connectionClosed=function(_7e8,_7e9,code,_7eb){
-_7dc.handleConnectionClosed(_7e8,_7e9,code,_7eb);
+_7e0.connectionClosed=function(_7ed,_7ee,code,_7f0){
+_7e1.handleConnectionClosed(_7ed,_7ee,code,_7f0);
 };
-_7db.connectionFailed=function(_7ec){
-_7dc.handleConnectionFailed(_7ec);
+_7e0.connectionFailed=function(_7f1){
+_7e1.handleConnectionFailed(_7f1);
 };
-_7db.connectionError=function(_7ed,e){
-_7dc.handleConnectionError(_7ed,e);
+_7e0.connectionError=function(_7f2,e){
+_7e1.handleConnectionError(_7f2,e);
 };
-_7da.setListener(_7db);
+_7df.setListener(_7e0);
 };
-_7c7.setListener=function(_7ef){
-this._listener=_7ef;
+_7cc.setListener=function(_7f4){
+this._listener=_7f4;
 };
-return _7c6;
-})();
-var _7f0=(function(){
-var _7f1=function(_7f2,_7f3,_7f4){
-this._nativeEquivalent=_7f2;
-this._handler=_7f3;
-this._channelFactory=_7f4;
-};
-return _7f1;
+return _7cb;
 })();
 var _7f5=(function(){
-var _7f6="javascript:ws";
-var _7f7="javascript:wss";
-var _7f8="javascript:wse";
-var _7f9="javascript:wse+ssl";
-var _7fa="flash:wse";
-var _7fb="flash:wse+ssl";
-var _7fc="flash:wsr";
-var _7fd="flash:wsr+ssl";
-var _7fe={};
-var _7ff={};
-var _800=new _55f();
-var _801=new _558();
-var _802=true;
+var _7f6=function(_7f7,_7f8,_7f9){
+this._nativeEquivalent=_7f7;
+this._handler=_7f8;
+this._channelFactory=_7f9;
+};
+return _7f6;
+})();
+var _7fa=(function(){
+var _7fb="javascript:ws";
+var _7fc="javascript:wss";
+var _7fd="javascript:wse";
+var _7fe="javascript:wse+ssl";
+var _7ff="flash:wse";
+var _800="flash:wse+ssl";
+var _801="flash:wsr";
+var _802="flash:wsr+ssl";
 var _803={};
+var _804={};
+var _805=new _55f();
+var _806=new _558();
+var _807=true;
+var _808={};
 if(Object.defineProperty){
 try{
-Object.defineProperty(_803,"prop",{get:function(){
+Object.defineProperty(_808,"prop",{get:function(){
 return true;
 }});
-_802=false;
+_807=false;
 }
 catch(e){
 }
 }
-var _804=function(){
+var _809=function(){
 this._handlerListener=createListener(this);
 this._nativeHandler=createNativeHandler(this);
 this._emulatedHandler=createEmulatedHandler(this);
 this._emulatedFlashHandler=createFlashEmulatedHandler(this);
 this._rtmpFlashHandler=createFlashRtmpHandler(this);
 pickStrategies();
-_7fe[_7f6]=new _7f0("ws",this._nativeHandler,_800);
-_7fe[_7f7]=new _7f0("wss",this._nativeHandler,_800);
-_7fe[_7f8]=new _7f0("ws",this._emulatedHandler,_801);
-_7fe[_7f9]=new _7f0("wss",this._emulatedHandler,_801);
-_7fe[_7fa]=new _7f0("ws",this._emulatedFlashHandler,_801);
-_7fe[_7fb]=new _7f0("wss",this._emulatedFlashHandler,_801);
-_7fe[_7fc]=new _7f0("ws",this._rtmpFlashHandler,_801);
-_7fe[_7fd]=new _7f0("wss",this._rtmpFlashHandler,_801);
+_803[_7fb]=new _7f5("ws",this._nativeHandler,_805);
+_803[_7fc]=new _7f5("wss",this._nativeHandler,_805);
+_803[_7fd]=new _7f5("ws",this._emulatedHandler,_806);
+_803[_7fe]=new _7f5("wss",this._emulatedHandler,_806);
+_803[_7ff]=new _7f5("ws",this._emulatedFlashHandler,_806);
+_803[_800]=new _7f5("wss",this._emulatedFlashHandler,_806);
+_803[_801]=new _7f5("ws",this._rtmpFlashHandler,_806);
+_803[_802]=new _7f5("wss",this._rtmpFlashHandler,_806);
 };
 function isIE6orIE7(){
 if(browser!="ie"){
 return false;
 }
-var _805=navigator.appVersion;
-return (_805.indexOf("MSIE 6.0")>=0||_805.indexOf("MSIE 7.0")>=0);
+var _80a=navigator.appVersion;
+return (_80a.indexOf("MSIE 6.0")>=0||_80a.indexOf("MSIE 7.0")>=0);
 };
 function isXdrDisabledonIE8IE9(){
 if(browser!="ie"){
 return false;
 }
-var _806=navigator.appVersion;
-return ((_806.indexOf("MSIE 8.0")>=0||_806.indexOf("MSIE 9.0")>=0)&&typeof (XDomainRequest)==="undefined");
+var _80b=navigator.appVersion;
+return ((_80b.indexOf("MSIE 8.0")>=0||_80b.indexOf("MSIE 9.0")>=0)&&typeof (XDomainRequest)==="undefined");
 };
 function pickStrategies(){
 if(isIE6orIE7()||isXdrDisabledonIE8IE9()){
-_7ff["ws"]=new Array(_7f6,_7fa,_7f8);
-_7ff["wss"]=new Array(_7f7,_7fb,_7f9);
+_804["ws"]=new Array(_7fb,_7ff,_7fd);
+_804["wss"]=new Array(_7fc,_800,_7fe);
 }else{
-_7ff["ws"]=new Array(_7f6,_7f8);
-_7ff["wss"]=new Array(_7f7,_7f9);
+_804["ws"]=new Array(_7fb,_7fd);
+_804["wss"]=new Array(_7fc,_7fe);
 }
 };
-function createListener(_807){
-var _808={};
-_808.connectionOpened=function(_809,_80a){
-_807.handleConnectionOpened(_809,_80a);
+function createListener(_80c){
+var _80d={};
+_80d.connectionOpened=function(_80e,_80f){
+_80c.handleConnectionOpened(_80e,_80f);
 };
-_808.binaryMessageReceived=function(_80b,buf){
-_807.handleMessageReceived(_80b,buf);
+_80d.binaryMessageReceived=function(_810,buf){
+_80c.handleMessageReceived(_810,buf);
 };
-_808.textMessageReceived=function(_80d,text){
-var _80f=_80d.parent;
-_80f._webSocketChannelListener.handleMessage(_80f._webSocket,text);
+_80d.textMessageReceived=function(_812,text){
+var _814=_812.parent;
+_814._webSocketChannelListener.handleMessage(_814._webSocket,text);
 };
-_808.connectionClosed=function(_810,_811,code,_813){
-_807.handleConnectionClosed(_810,_811,code,_813);
+_80d.connectionClosed=function(_815,_816,code,_818){
+_80c.handleConnectionClosed(_815,_816,code,_818);
 };
-_808.connectionFailed=function(_814){
-_807.handleConnectionFailed(_814);
+_80d.connectionFailed=function(_819){
+_80c.handleConnectionFailed(_819);
 };
-_808.connectionError=function(_815,e){
-_807.handleConnectionError(_815,e);
+_80d.connectionError=function(_81a,e){
+_80c.handleConnectionError(_81a,e);
 };
-_808.authenticationRequested=function(_817,_818,_819){
+_80d.authenticationRequested=function(_81c,_81d,_81e){
 };
-_808.redirected=function(_81a,_81b){
+_80d.redirected=function(_81f,_820){
 };
-_808.onBufferedAmountChange=function(_81c,n){
-_807.handleBufferedAmountChange(_81c,n);
+_80d.onBufferedAmountChange=function(_821,n){
+_80c.handleBufferedAmountChange(_821,n);
 };
-return _808;
+return _80d;
 };
-function createNativeHandler(_81e){
-var _81f=new _7c5();
-var _820=new _680();
-_81f.setListener(_81e._handlerListener);
-_81f.setNextHandler(_820);
-return _81f;
+function createNativeHandler(_823){
+var _824=new _7ca();
+var _825=new _680();
+_824.setListener(_823._handlerListener);
+_824.setNextHandler(_825);
+return _824;
 };
-function createEmulatedHandler(_821){
-var _822=new _7c5();
-var _823=new _763();
-_822.setListener(_821._handlerListener);
-_822.setNextHandler(_823);
-return _822;
+function createEmulatedHandler(_826){
+var _827=new _7ca();
+var _828=new _768();
+_827.setListener(_826._handlerListener);
+_827.setNextHandler(_828);
+return _827;
 };
-function createFlashEmulatedHandler(_824){
-var _825=new _7c5();
-var _826=new _789();
-_825.setListener(_824._handlerListener);
-_825.setNextHandler(_826);
-return _825;
+function createFlashEmulatedHandler(_829){
+var _82a=new _7ca();
+var _82b=new _78e();
+_82a.setListener(_829._handlerListener);
+_82a.setNextHandler(_82b);
+return _82a;
 };
-function createFlashRtmpHandler(_827){
-var _828=new _7c5();
-var _829=new _7b3();
-_828.setListener(_827._handlerListener);
-_828.setNextHandler(_829);
-return _828;
+function createFlashRtmpHandler(_82c){
+var _82d=new _7ca();
+var _82e=new _7b8();
+_82d.setListener(_82c._handlerListener);
+_82d.setNextHandler(_82e);
+return _82d;
 };
-var _82a=function(_82b,_82c){
-var _82d=_7fe[_82c];
-var _82e=_82d._channelFactory;
-var _82f=_82b._location;
-var _830=_82e.createChannel(_82f,_82b._protocol);
-_82b._selectedChannel=_830;
-_830.parent=_82b;
-_830._extensions=_82b._extensions;
-_830._handler=_82d._handler;
-_830._handler.processConnect(_82b._selectedChannel,_82f,_82b._protocol);
+var _82f=function(_830,_831){
+var _832=_803[_831];
+var _833=_832._channelFactory;
+var _834=_830._location;
+var _835=_833.createChannel(_834,_830._protocol);
+_830._selectedChannel=_835;
+_835.parent=_830;
+_835._extensions=_830._extensions;
+_835._handler=_832._handler;
+_835._handler.processConnect(_830._selectedChannel,_834,_830._protocol);
 };
-var _831=_804.prototype;
-_831.fallbackNext=function(_832){
-var _833=_832.getNextStrategy();
-if(_833==null){
-this.doClose(_832,false,1006,"");
+var _836=_809.prototype;
+_836.fallbackNext=function(_837){
+var _838=_837.getNextStrategy();
+if(_838==null){
+this.doClose(_837,false,1006,"");
 }else{
-_82a(_832,_833);
+_82f(_837,_838);
 }
 };
-_831.doOpen=function(_834,_835){
-if(_834.readyState===WebSocket.CONNECTING){
-_834.readyState=WebSocket.OPEN;
-if(_802){
-_834._webSocket.readyState=WebSocket.OPEN;
+_836.doOpen=function(_839,_83a){
+if(_839._lastErrorEvent!==undefined){
+delete _839._lastErrorEvent;
 }
-_834._webSocketChannelListener.handleOpen(_834._webSocket,_835);
+if(_839.readyState===WebSocket.CONNECTING){
+_839.readyState=WebSocket.OPEN;
+if(_807){
+_839._webSocket.readyState=WebSocket.OPEN;
 }
-};
-_831.doClose=function(_836,_837,code,_839){
-if(_836.readyState===WebSocket.CONNECTING||_836.readyState===WebSocket.OPEN||_836.readyState===WebSocket.CLOSING){
-_836.readyState=WebSocket.CLOSED;
-if(_802){
-_836._webSocket.readyState=WebSocket.CLOSED;
-}
-_836._webSocketChannelListener.handleClose(_836._webSocket,_837,code,_839);
+_839._webSocketChannelListener.handleOpen(_839._webSocket,_83a);
 }
 };
-_831.doBufferedAmountChange=function(_83a,n){
-_83a._webSocketChannelListener.handleBufferdAmountChange(_83a._webSocket,n);
+_836.doClose=function(_83b,_83c,code,_83e){
+if(_83b._lastErrorEvent!==undefined){
+_83b._webSocketChannelListener.handleError(_83b._webSocket,_83b._lastErrorEvent);
+delete _83b._lastErrorEvent;
+}
+if(_83b.readyState===WebSocket.CONNECTING||_83b.readyState===WebSocket.OPEN||_83b.readyState===WebSocket.CLOSING){
+_83b.readyState=WebSocket.CLOSED;
+if(_807){
+_83b._webSocket.readyState=WebSocket.CLOSED;
+}
+_83b._webSocketChannelListener.handleClose(_83b._webSocket,_83c,code,_83e);
+}
 };
-_831.processConnect=function(_83c,_83d,_83e){
-var _83f=_83c;
-if(_83f.readyState===WebSocket.OPEN){
+_836.doBufferedAmountChange=function(_83f,n){
+_83f._webSocketChannelListener.handleBufferdAmountChange(_83f._webSocket,n);
+};
+_836.processConnect=function(_841,_842,_843){
+var _844=_841;
+if(_844.readyState===WebSocket.OPEN){
 throw new Error("Attempt to reconnect an existing open WebSocket to a different location");
 }
-var _840=_83f._compositeScheme;
-if(_840!="ws"&&_840!="wss"){
-var _841=_7fe[_840];
-if(_841==null){
-throw new Error("Invalid connection scheme: "+_840);
+var _845=_844._compositeScheme;
+if(_845!="ws"&&_845!="wss"){
+var _846=_803[_845];
+if(_846==null){
+throw new Error("Invalid connection scheme: "+_845);
 }
-_83f._connectionStrategies.push(_840);
+_844._connectionStrategies.push(_845);
 }else{
-var _842=_7ff[_840];
-if(_842!=null){
-for(var i=0;i<_842.length;i++){
-_83f._connectionStrategies.push(_842[i]);
+var _847=_804[_845];
+if(_847!=null){
+for(var i=0;i<_847.length;i++){
+_844._connectionStrategies.push(_847[i]);
 }
 }else{
-throw new Error("Invalid connection scheme: "+_840);
+throw new Error("Invalid connection scheme: "+_845);
 }
 }
-this.fallbackNext(_83f);
+this.fallbackNext(_844);
 };
-_831.processTextMessage=function(_844,_845){
-var _846=_844;
-if(_846.readyState!=WebSocket.OPEN){
+_836.processTextMessage=function(_849,_84a){
+var _84b=_849;
+if(_84b.readyState!=WebSocket.OPEN){
 throw new Error("Attempt to post message on unopened or closed web socket");
 }
-var _847=_846._selectedChannel;
-_847._handler.processTextMessage(_847,_845);
+var _84c=_84b._selectedChannel;
+_84c._handler.processTextMessage(_84c,_84a);
 };
-_831.processBinaryMessage=function(_848,_849){
-var _84a=_848;
-if(_84a.readyState!=WebSocket.OPEN){
+_836.processBinaryMessage=function(_84d,_84e){
+var _84f=_84d;
+if(_84f.readyState!=WebSocket.OPEN){
 throw new Error("Attempt to post message on unopened or closed web socket");
-}
-var _84b=_84a._selectedChannel;
-_84b._handler.processBinaryMessage(_84b,_849);
-};
-_831.processClose=function(_84c,code,_84e){
-var _84f=_84c;
-if(_84c.readyState===WebSocket.CONNECTING||_84c.readyState===WebSocket.OPEN){
-_84c.readyState=WebSocket.CLOSING;
-if(_802){
-_84c._webSocket.readyState=WebSocket.CLOSING;
-}
 }
 var _850=_84f._selectedChannel;
-_850._handler.processClose(_850,code,_84e);
+_850._handler.processBinaryMessage(_850,_84e);
 };
-_831.setListener=function(_851){
-this._listener=_851;
+_836.processClose=function(_851,code,_853){
+var _854=_851;
+if(_851.readyState===WebSocket.CONNECTING||_851.readyState===WebSocket.OPEN){
+_851.readyState=WebSocket.CLOSING;
+if(_807){
+_851._webSocket.readyState=WebSocket.CLOSING;
+}
+}
+var _855=_854._selectedChannel;
+_855._handler.processClose(_855,code,_853);
 };
-_831.handleConnectionOpened=function(_852,_853){
-var _854=_852.parent;
-this.doOpen(_854,_853);
+_836.setListener=function(_856){
+this._listener=_856;
 };
-_831.handleMessageReceived=function(_855,obj){
-var _857=_855.parent;
-switch(_857.readyState){
+_836.handleConnectionOpened=function(_857,_858){
+var _859=_857.parent;
+this.doOpen(_859,_858);
+};
+_836.handleMessageReceived=function(_85a,obj){
+var _85c=_85a.parent;
+switch(_85c.readyState){
 case WebSocket.OPEN:
-if(_857._webSocket.binaryType==="blob"&&obj.constructor==ByteBuffer){
+if(_85c._webSocket.binaryType==="blob"&&obj.constructor==ByteBuffer){
 obj=obj.getBlob(obj.remaining());
 }else{
-if(_857._webSocket.binaryType==="arraybuffer"&&obj.constructor==ByteBuffer){
+if(_85c._webSocket.binaryType==="arraybuffer"&&obj.constructor==ByteBuffer){
 obj=obj.getArrayBuffer(obj.remaining());
 }else{
-if(_857._webSocket.binaryType==="blob"&&obj.byteLength){
+if(_85c._webSocket.binaryType==="blob"&&obj.byteLength){
 obj=new Blob([new Uint8Array(obj)]);
 }else{
-if(_857._webSocket.binaryType==="bytebuffer"&&obj.byteLength){
+if(_85c._webSocket.binaryType==="bytebuffer"&&obj.byteLength){
 var u=new Uint8Array(obj);
-var _859=[];
+var _85e=[];
 for(var i=0;i<u.byteLength;i++){
-_859.push(u[i]);
+_85e.push(u[i]);
 }
-obj=new ByteBuffer(_859);
+obj=new ByteBuffer(_85e);
 }else{
-if(_857._webSocket.binaryType==="bytebuffer"&&obj.size){
-var cb=function(_85c){
+if(_85c._webSocket.binaryType==="bytebuffer"&&obj.size){
+var cb=function(_861){
 var b=new ByteBuffer();
-b.putBytes(_85c);
+b.putBytes(_861);
 b.flip();
-_857._webSocketChannelListener.handleMessage(_857._webSocket,b);
+_85c._webSocketChannelListener.handleMessage(_85c._webSocket,b);
 };
 BlobUtils.asNumberArray(cb,data);
 return;
@@ -7153,7 +7175,7 @@ return;
 }
 }
 }
-_857._webSocketChannelListener.handleMessage(_857._webSocket,obj);
+_85c._webSocketChannelListener.handleMessage(_85c._webSocket,obj);
 break;
 case WebSocket.CONNECTING:
 case WebSocket.CLOSING:
@@ -7163,33 +7185,32 @@ default:
 throw new Error("Socket has invalid readyState: "+$this.readyState);
 }
 };
-_831.handleConnectionClosed=function(_85e,_85f,code,_861){
-var _862=_85e.parent;
-if(_862.readyState===WebSocket.CONNECTING&&!_85e.authenticationReceived&&!_85e.preventFallback){
-this.fallbackNext(_862);
+_836.handleConnectionClosed=function(_863,_864,code,_866){
+var _867=_863.parent;
+if(_867.readyState===WebSocket.CONNECTING&&!_863.authenticationReceived&&!_863.preventFallback){
+this.fallbackNext(_867);
 }else{
-this.doClose(_862,_85f,code,_861);
+this.doClose(_867,_864,code,_866);
 }
 };
-_831.handleConnectionFailed=function(_863){
-var _864=_863.parent;
-var _865=1006;
-var _866="";
-if(_863.closeReason.length>0){
-_865=_863.closeCode;
-_866=_863.closeReason;
+_836.handleConnectionFailed=function(_868){
+var _869=_868.parent;
+var _86a=1006;
+var _86b="";
+if(_868.closeReason.length>0){
+_86a=_868.closeCode;
+_86b=_868.closeReason;
 }
-if(_864.readyState===WebSocket.CONNECTING&&!_863.authenticationReceived&&!_863.preventFallback){
-this.fallbackNext(_864);
+if(_869.readyState===WebSocket.CONNECTING&&!_868.authenticationReceived&&!_868.preventFallback){
+this.fallbackNext(_869);
 }else{
-this.doClose(_864,false,_865,_866);
+this.doClose(_869,false,_86a,_86b);
 }
 };
-_831.handleConnectionError=function(_867,e){
-var _869=_867.parent;
-_869._webSocketChannelListener.handleError(_869._webSocket,e);
+_836.handleConnectionError=function(_86c,e){
+_86c.parent._lastErrorEvent=e;
 };
-return _804;
+return _809;
 })();
 (function(){
 window.HttpRedirectPolicy=function(name){
@@ -7208,139 +7229,139 @@ throw Error(s);
 }
 this.name=name;
 };
-var _86c=HttpRedirectPolicy.prototype;
-_86c.toString=function(){
+var _870=HttpRedirectPolicy.prototype;
+_870.toString=function(){
 return "HttpRedirectPolicy."+this.name;
 };
-_86c.isRedirectionAllowed=function(_86d,_86e){
+_870.isRedirectionAllowed=function(_871,_872){
 if(arguments.length<2){
 var s="HttpRedirectPolicy.isRedirectionAllowed(): Please specify both the 'originalLoc' and the 'redirectLoc' parameters.";
 throw Error(s);
 }
-if(typeof (_86d)=="undefined"){
+if(typeof (_871)=="undefined"){
 var s="HttpRedirectPolicy.isRedirectionAllowed(): Please specify required 'originalLoc' parameter.";
 throw Error(s);
 }else{
-if(typeof (_86d)!="string"){
+if(typeof (_871)!="string"){
 var s="HttpRedirectPolicy.isRedirectionAllowed(): Required parameter 'originalLoc' is a string.";
 throw Error(s);
 }
 }
-if(typeof (_86e)=="undefined"){
+if(typeof (_872)=="undefined"){
 var s="HttpRedirectPolicy.isRedirectionAllowed(): Please specify required 'redirectLoc' parameter.";
 throw Error(s);
 }else{
-if(typeof (_86e)!="string"){
+if(typeof (_872)!="string"){
 var s="HttpRedirectPolicy.isRedirectionAllowed(): Required parameter 'redirectLoc' is a string.";
 throw Error(s);
 }
 }
-var _870=false;
-var _871=new URI(_86d.toLowerCase().replace("http","ws"));
-var _872=new URI(_86e.toLowerCase().replace("http","ws"));
+var _874=false;
+var _875=new URI(_871.toLowerCase().replace("http","ws"));
+var _876=new URI(_872.toLowerCase().replace("http","ws"));
 switch(this.name){
 case "ALWAYS":
-_870=true;
+_874=true;
 break;
 case "NEVER":
-_870=false;
+_874=false;
 break;
 case "PEER_DOMAIN":
-_870=isPeerDomain(_871,_872);
+_874=isPeerDomain(_875,_876);
 break;
 case "SAME_DOMAIN":
-_870=isSameDomain(_871,_872);
+_874=isSameDomain(_875,_876);
 break;
 case "SAME_ORIGIN":
-_870=isSameOrigin(_871,_872);
+_874=isSameOrigin(_875,_876);
 break;
 case "SUB_DOMAIN":
-_870=isSubDomain(_871,_872);
+_874=isSubDomain(_875,_876);
 break;
 default:
 var s="HttpRedirectPolicy.isRedirectionAllowed(): Invalid policy: "+this.name;
 throw new Error(s);
 }
-return _870;
+return _874;
 };
-function isPeerDomain(_873,_874){
-if(isSameDomain(_873,_874)){
+function isPeerDomain(_877,_878){
+if(isSameDomain(_877,_878)){
 return true;
 }
-var _875=_873.scheme.toLowerCase();
-var _876=_874.scheme.toLowerCase();
-if(_876.indexOf(_875)==-1){
+var _879=_877.scheme.toLowerCase();
+var _87a=_878.scheme.toLowerCase();
+if(_87a.indexOf(_879)==-1){
 return false;
 }
-var _877=_873.host;
-var _878=_874.host;
-var _879=getBaseDomain(_877);
-var _87a=getBaseDomain(_878);
-if(_878.indexOf(_879,(_878.length-_879.length))==-1){
+var _87b=_877.host;
+var _87c=_878.host;
+var _87d=getBaseDomain(_87b);
+var _87e=getBaseDomain(_87c);
+if(_87c.indexOf(_87d,(_87c.length-_87d.length))==-1){
 return false;
 }
-if(_877.indexOf(_87a,(_877.length-_87a.length))==-1){
+if(_87b.indexOf(_87e,(_87b.length-_87e.length))==-1){
 return false;
 }
 return true;
 };
-function isSameDomain(_87b,_87c){
-if(isSameOrigin(_87b,_87c)){
+function isSameDomain(_87f,_880){
+if(isSameOrigin(_87f,_880)){
 return true;
 }
-var _87d=_87b.scheme.toLowerCase();
-var _87e=_87c.scheme.toLowerCase();
-if(_87e.indexOf(_87d)==-1){
+var _881=_87f.scheme.toLowerCase();
+var _882=_880.scheme.toLowerCase();
+if(_882.indexOf(_881)==-1){
 return false;
 }
-var _87f=_87b.host.toLowerCase();
-var _880=_87c.host.toLowerCase();
-if(_87f==_880){
-return true;
-}
-return false;
-};
-function isSameOrigin(_881,_882){
-var _883=_881.scheme.toLowerCase();
-var _884=_882.scheme.toLowerCase();
-var _885=_881.authority.toLowerCase();
-var _886=_882.authority.toLowerCase();
-if((_883==_884)&&(_885==_886)){
+var _883=_87f.host.toLowerCase();
+var _884=_880.host.toLowerCase();
+if(_883==_884){
 return true;
 }
 return false;
 };
-function isSubDomain(_887,_888){
-if(isSameDomain(_887,_888)){
+function isSameOrigin(_885,_886){
+var _887=_885.scheme.toLowerCase();
+var _888=_886.scheme.toLowerCase();
+var _889=_885.authority.toLowerCase();
+var _88a=_886.authority.toLowerCase();
+if((_887==_888)&&(_889==_88a)){
 return true;
 }
-var _889=_887.scheme.toLowerCase();
-var _88a=_888.scheme.toLowerCase();
-if(_88a.indexOf(_889)==-1){
+return false;
+};
+function isSubDomain(_88b,_88c){
+if(isSameDomain(_88b,_88c)){
+return true;
+}
+var _88d=_88b.scheme.toLowerCase();
+var _88e=_88c.scheme.toLowerCase();
+if(_88e.indexOf(_88d)==-1){
 return false;
 }
-var _88b=_887.host.toLowerCase();
-var _88c=_888.host.toLowerCase();
-if(_88c.length<_88b.length){
+var _88f=_88b.host.toLowerCase();
+var _890=_88c.host.toLowerCase();
+if(_890.length<_88f.length){
 return false;
 }
-var s="."+_88b;
-if(_88c.indexOf(s,(_88c.length-s.length))==-1){
+var s="."+_88f;
+if(_890.indexOf(s,(_890.length-s.length))==-1){
 return false;
 }
 return true;
 };
 function getBaseDomain(host){
-var _88f=host.split(".");
-var len=_88f.length;
+var _893=host.split(".");
+var len=_893.length;
 if(len<=2){
 return host;
 }
-var _891="";
+var _895="";
 for(var i=1;i<len;i++){
-_891+="."+_88f[i];
+_895+="."+_893[i];
 }
-return _891;
+return _895;
 };
 HttpRedirectPolicy.ALWAYS=new HttpRedirectPolicy("ALWAYS");
 HttpRedirectPolicy.NEVER=new HttpRedirectPolicy("NEVER");
@@ -7351,38 +7372,38 @@ HttpRedirectPolicy.SUB_DOMAIN=new HttpRedirectPolicy("SUB_DOMAIN");
 return HttpRedirectPolicy;
 })();
 (function(){
-var _893=new _7f5();
+var _897=new _7fa();
 window.WebSocket=(function(){
-var _894={};
-var _895=function(url,_897,_898,_899,_89a,_89b){
+var _898={};
+var _899=function(url,_89b,_89c,_89d,_89e,_89f){
 this.url=url;
-this.protocol=_897;
-this.extensions=_898||[];
+this.protocol=_89b;
+this.extensions=_89c||[];
 this.connectTimeout=0;
-this._challengeHandler=_899;
+this._challengeHandler=_89d;
 this._redirectPolicy=HttpRedirectPolicy.ALWAYS;
-if(typeof (_89a)!="undefined"){
-_89c(_89a);
-this.connectTimeout=_89a;
+if(typeof (_89e)!="undefined"){
+_8a0(_89e);
+this.connectTimeout=_89e;
 }
-if(typeof (_89b)!="undefined"){
-_89d(_89b);
-this._redirectPolicy=_89b;
+if(typeof (_89f)!="undefined"){
+_8a1(_89f);
+this._redirectPolicy=_89f;
 }
 this._queue=[];
 this._origin="";
 this._eventListeners={};
 setProperties(this);
-_89e(this,this.url,this.protocol,this.extensions,this._challengeHandler,this.connectTimeout);
+_8a2(this,this.url,this.protocol,this.extensions,this._challengeHandler,this.connectTimeout);
 };
-var _89f=function(s){
+var _8a3=function(s){
 if(s.length==0){
 return false;
 }
-var _8a1="()<>@,;:\\<>/[]?={}\t \n";
+var _8a5="()<>@,;:\\<>/[]?={}\t \n";
 for(var i=0;i<s.length;i++){
 var c=s.substr(i,1);
-if(_8a1.indexOf(c)!=-1){
+if(_8a5.indexOf(c)!=-1){
 return false;
 }
 var code=s.charCodeAt(i);
@@ -7392,15 +7413,15 @@ return false;
 }
 return true;
 };
-var _8a5=function(_8a6){
-if(typeof (_8a6)==="undefined"){
+var _8a9=function(_8aa){
+if(typeof (_8aa)==="undefined"){
 return true;
 }else{
-if(typeof (_8a6)==="string"){
-return _89f(_8a6);
+if(typeof (_8aa)==="string"){
+return _8a3(_8aa);
 }else{
-for(var i=0;i<_8a6.length;i++){
-if(!_89f(_8a6[i])){
+for(var i=0;i<_8aa.length;i++){
+if(!_8a3(_8aa[i])){
 return false;
 }
 }
@@ -7408,98 +7429,98 @@ return true;
 }
 }
 };
-var _89e=function(_8a8,_8a9,_8aa,_8ab,_8ac,_8ad){
-if(!_8a5(_8aa)){
-throw new Error("SyntaxError: invalid protocol: "+_8aa);
+var _8a2=function(_8ac,_8ad,_8ae,_8af,_8b0,_8b1){
+if(!_8a9(_8ae)){
+throw new Error("SyntaxError: invalid protocol: "+_8ae);
 }
-var uri=new _508(_8a9);
+var uri=new _508(_8ad);
 if(!uri.isSecure()&&document.location.protocol==="https:"){
 throw new Error("SecurityException: non-secure connection attempted from secure origin");
 }
-var _8af=[];
-if(typeof (_8aa)!="undefined"){
-if(typeof _8aa=="string"&&_8aa.length){
-_8af=[_8aa];
+var _8b3=[];
+if(typeof (_8ae)!="undefined"){
+if(typeof _8ae=="string"&&_8ae.length){
+_8b3=[_8ae];
 }else{
-if(_8aa.length){
-_8af=_8aa;
+if(_8ae.length){
+_8b3=_8ae;
 }
 }
 }
-_8a8._channel=new _565(uri,_8af);
-_8a8._channel._webSocket=_8a8;
-_8a8._channel._webSocketChannelListener=_894;
-_8a8._channel._extensions=_8ab;
-if(typeof (_8ac)!="undefined"){
-_8a8._channel.challengeHandler=_8ac;
+_8ac._channel=new _565(uri,_8b3);
+_8ac._channel._webSocket=_8ac;
+_8ac._channel._webSocketChannelListener=_898;
+_8ac._channel._extensions=_8af;
+if(typeof (_8b0)!="undefined"){
+_8ac._channel.challengeHandler=_8b0;
 }
-if((typeof (_8ad)!="undefined")&&(_8ad>0)){
-var _8b0=_8a8._channel;
-var _8b1=new _514(function(){
-if(_8b0.readyState==_895.CONNECTING){
-_893.doClose(_8b0,false,1006,"Connection timeout");
-_893.processClose(_8b0,0,"Connection timeout");
-_8b0.connectTimer=null;
+if((typeof (_8b1)!="undefined")&&(_8b1>0)){
+var _8b4=_8ac._channel;
+var _8b5=new _514(function(){
+if(_8b4.readyState==_899.CONNECTING){
+_897.doClose(_8b4,false,1006,"Connection timeout");
+_897.processClose(_8b4,0,"Connection timeout");
+_8b4.connectTimer=null;
 }
-},_8ad,false);
-_8a8._channel.connectTimer=_8b1;
-_8b1.start();
+},_8b1,false);
+_8ac._channel.connectTimer=_8b5;
+_8b5.start();
 }
-_893.processConnect(_8a8._channel,uri.getWSEquivalent());
+_897.processConnect(_8ac._channel,uri.getWSEquivalent());
 };
-function setProperties(_8b2){
-_8b2.onmessage=null;
-_8b2.onopen=null;
-_8b2.onclose=null;
-_8b2.onerror=null;
+function setProperties(_8b6){
+_8b6.onmessage=null;
+_8b6.onopen=null;
+_8b6.onclose=null;
+_8b6.onerror=null;
 if(Object.defineProperty){
 try{
-Object.defineProperty(_8b2,"readyState",{get:function(){
-if(_8b2._channel){
-return _8b2._channel.readyState;
+Object.defineProperty(_8b6,"readyState",{get:function(){
+if(_8b6._channel){
+return _8b6._channel.readyState;
 }else{
-return _895.CLOSED;
+return _899.CLOSED;
 }
 },set:function(){
 throw new Error("Cannot set read only property readyState");
 }});
-var _8b3="blob";
-Object.defineProperty(_8b2,"binaryType",{enumerable:true,configurable:true,get:function(){
-return _8b3;
+var _8b7="blob";
+Object.defineProperty(_8b6,"binaryType",{enumerable:true,configurable:true,get:function(){
+return _8b7;
 },set:function(val){
 if(val==="blob"||val==="arraybuffer"||val==="bytebuffer"){
-_8b3=val;
+_8b7=val;
 }else{
 throw new SyntaxError("Invalid binaryType. Valid values are 'blob', 'arraybuffer' and 'bytebuffer'");
 }
 }});
-Object.defineProperty(_8b2,"bufferedAmount",{get:function(){
-return _8b2._channel.getBufferedAmount();
+Object.defineProperty(_8b6,"bufferedAmount",{get:function(){
+return _8b6._channel.getBufferedAmount();
 },set:function(){
 throw new Error("Cannot set read only property bufferedAmount");
 }});
 }
 catch(ex){
-_8b2.readyState=_895.CONNECTING;
-_8b2.binaryType="blob";
-_8b2.bufferedAmount=0;
+_8b6.readyState=_899.CONNECTING;
+_8b6.binaryType="blob";
+_8b6.bufferedAmount=0;
 }
 }else{
-_8b2.readyState=_895.CONNECTING;
-_8b2.binaryType="blob";
-_8b2.bufferedAmount=0;
+_8b6.readyState=_899.CONNECTING;
+_8b6.binaryType="blob";
+_8b6.bufferedAmount=0;
 }
 };
-var _8b5=_895.prototype;
-_8b5.send=function(data){
+var _8b9=_899.prototype;
+_8b9.send=function(data){
 switch(this.readyState){
 case 0:
 throw new Error("Attempt to send message on unopened or closed WebSocket");
 case 1:
 if(typeof (data)==="string"){
-_893.processTextMessage(this._channel,data);
+_897.processTextMessage(this._channel,data);
 }else{
-_893.processBinaryMessage(this._channel,data);
+_897.processBinaryMessage(this._channel,data);
 }
 break;
 case 2:
@@ -7509,17 +7530,17 @@ default:
 throw new Error("Illegal state error");
 }
 };
-_8b5.close=function(code,_8b8){
+_8b9.close=function(code,_8bc){
 if(typeof code!="undefined"){
 if(code!=1000&&(code<3000||code>4999)){
-var _8b9=new Error("code must equal to 1000 or in range 3000 to 4999");
-_8b9.name="InvalidAccessError";
-throw _8b9;
+var _8bd=new Error("code must equal to 1000 or in range 3000 to 4999");
+_8bd.name="InvalidAccessError";
+throw _8bd;
 }
 }
-if(typeof _8b8!="undefined"&&_8b8.length>0){
+if(typeof _8bc!="undefined"&&_8bc.length>0){
 var buf=new ByteBuffer();
-buf.putString(_8b8,Charset.UTF8);
+buf.putString(_8bc,Charset.UTF8);
 buf.flip();
 if(buf.remaining()>123){
 throw new SyntaxError("SyntaxError: reason is longer than 123 bytes");
@@ -7528,7 +7549,7 @@ throw new SyntaxError("SyntaxError: reason is longer than 123 bytes");
 switch(this.readyState){
 case 0:
 case 1:
-_893.processClose(this._channel,code,_8b8);
+_897.processClose(this._channel,code,_8bc);
 break;
 case 2:
 case 3:
@@ -7537,190 +7558,190 @@ default:
 throw new Error("Illegal state error");
 }
 };
-_8b5.getChallengeHandler=function(){
+_8b9.getChallengeHandler=function(){
 return this._challengeHandler||null;
 };
-_8b5.setChallengeHandler=function(_8bb){
-if(typeof (_8bb)=="undefined"){
+_8b9.setChallengeHandler=function(_8bf){
+if(typeof (_8bf)=="undefined"){
 var s="WebSocket.setChallengeHandler(): Parameter 'challengeHandler' is required";
 throw new Error(s);
 }
-this._challengeHandler=_8bb;
-this._channel.challengeHandler=_8bb;
+this._challengeHandler=_8bf;
+this._channel.challengeHandler=_8bf;
 };
-_8b5.getRedirectPolicy=function(){
+_8b9.getRedirectPolicy=function(){
 return this._redirectPolicy;
 };
-_8b5.setRedirectPolicy=function(_8bd){
-_89d(_8bd);
-this._redirectPolicy=_8bd;
+_8b9.setRedirectPolicy=function(_8c1){
+_8a1(_8c1);
+this._redirectPolicy=_8c1;
 };
-var _89c=function(_8be){
-if(typeof (_8be)=="undefined"){
+var _8a0=function(_8c2){
+if(typeof (_8c2)=="undefined"){
 var s="WebSocket.setConnectTimeout(): int parameter 'connectTimeout' is required";
 throw new Error(s);
 }
-if(typeof (_8be)!="number"){
+if(typeof (_8c2)!="number"){
 var s="WebSocket.setConnectTimeout(): connectTimeout should be an integer";
 throw new Error(s);
 }
-if(_8be<0){
+if(_8c2<0){
 var s="WebSocket.setConnectTimeout(): Connect timeout cannot be negative";
 throw new Error(s);
 }
 return;
 };
-var _89d=function(_8c0){
-if(typeof (_8c0)=="undefined"){
+var _8a1=function(_8c4){
+if(typeof (_8c4)=="undefined"){
 var s="WebSocket.validateHttpRedirectPolicy(): Parameter 'redirectPolicy' is required";
 throw new Error(s);
 }
-if(!(_8c0 instanceof HttpRedirectPolicy)){
+if(!(_8c4 instanceof HttpRedirectPolicy)){
 var s="WebSocket.validateHttpRedirectPolicy(): Parameter 'redirectPolicy' must be of type HttpRedirectPolicy";
 throw new Error(s);
 }
 };
-var _8c2=function(_8c3,data){
-var _8c5=new MessageEvent(_8c3,data,_8c3._origin);
-_8c3.dispatchEvent(_8c5);
+var _8c6=function(_8c7,data){
+var _8c9=new MessageEvent(_8c7,data,_8c7._origin);
+_8c7.dispatchEvent(_8c9);
 };
-var _8c6=function(_8c7){
-var _8c8=new Date().getTime();
-var _8c9=_8c8+50;
-while(_8c7._queue.length>0){
-if(new Date().getTime()>_8c9){
+var _8ca=function(_8cb){
+var _8cc=new Date().getTime();
+var _8cd=_8cc+50;
+while(_8cb._queue.length>0){
+if(new Date().getTime()>_8cd){
 setTimeout(function(){
-_8c6(_8c7);
+_8ca(_8cb);
 },0);
 return;
 }
-var buf=_8c7._queue.shift();
+var buf=_8cb._queue.shift();
 var ok=false;
 try{
-if(_8c7.readyState==_895.OPEN){
-_8c2(_8c7,buf);
+if(_8cb.readyState==_899.OPEN){
+_8c6(_8cb,buf);
 ok=true;
 }else{
-_8c7._queue=[];
+_8cb._queue=[];
 return;
 }
 }
 finally{
 if(!ok){
-if(_8c7._queue.length==0){
-_8c7._delivering=false;
+if(_8cb._queue.length==0){
+_8cb._delivering=false;
 }else{
 setTimeout(function(){
-_8c6(_8c7);
+_8ca(_8cb);
 },0);
 }
 }
 }
 }
-_8c7._delivering=false;
+_8cb._delivering=false;
 };
-var _8cc=function(_8cd,_8ce,code,_8d0){
-delete _8cd._channel;
+var _8d0=function(_8d1,_8d2,code,_8d4){
+delete _8d1._channel;
 setTimeout(function(){
-var _8d1=new CloseEvent(_8cd,_8ce,code,_8d0);
-_8cd.dispatchEvent(_8d1);
+var _8d5=new CloseEvent(_8d1,_8d2,code,_8d4);
+_8d1.dispatchEvent(_8d5);
 },0);
 };
-_894.handleOpen=function(_8d2,_8d3){
-_8d2.protocol=_8d3;
-var _8d4={type:"open",bubbles:true,cancelable:true,target:_8d2};
-_8d2.dispatchEvent(_8d4);
+_898.handleOpen=function(_8d6,_8d7){
+_8d6.protocol=_8d7;
+var _8d8={type:"open",bubbles:true,cancelable:true,target:_8d6};
+_8d6.dispatchEvent(_8d8);
 };
-_894.handleMessage=function(_8d5,obj){
+_898.handleMessage=function(_8d9,obj){
 if(!Object.defineProperty&&!(typeof (obj)==="string")){
-var _8d7=_8d5.binaryType;
-if(!(_8d7==="blob"||_8d7==="arraybuffer"||_8d7==="bytebuffer")){
-var _8d8={type:"error",bubbles:true,cancelable:true,target:_8d5,message:"Invalid binaryType. Valid values are 'blob', 'arraybuffer' and 'bytebuffer'"};
-_8d5.dispatchEvent(_8d8);
+var _8db=_8d9.binaryType;
+if(!(_8db==="blob"||_8db==="arraybuffer"||_8db==="bytebuffer")){
+var _8dc={type:"error",bubbles:true,cancelable:true,target:_8d9,message:"Invalid binaryType. Valid values are 'blob', 'arraybuffer' and 'bytebuffer'"};
+_8d9.dispatchEvent(_8dc);
 return;
 }
 }
-_8d5._queue.push(obj);
-if(!_8d5._delivering){
-_8d5._delivering=true;
-_8c6(_8d5);
+_8d9._queue.push(obj);
+if(!_8d9._delivering){
+_8d9._delivering=true;
+_8ca(_8d9);
 }
 };
-_894.handleClose=function(_8d9,_8da,code,_8dc){
-_8cc(_8d9,_8da,code,_8dc);
+_898.handleClose=function(_8dd,_8de,code,_8e0){
+_8d0(_8dd,_8de,code,_8e0);
 };
-_894.handleError=function(_8dd,_8de){
+_898.handleError=function(_8e1,_8e2){
 setTimeout(function(){
-_8dd.dispatchEvent(_8de);
+_8e1.dispatchEvent(_8e2);
 },0);
 };
-_894.handleBufferdAmountChange=function(_8df,n){
-_8df.bufferedAmount=n;
+_898.handleBufferdAmountChange=function(_8e3,n){
+_8e3.bufferedAmount=n;
 };
-_8b5.addEventListener=function(type,_8e2,_8e3){
+_8b9.addEventListener=function(type,_8e6,_8e7){
 this._eventListeners[type]=this._eventListeners[type]||[];
-this._eventListeners[type].push(_8e2);
+this._eventListeners[type].push(_8e6);
 };
-_8b5.removeEventListener=function(type,_8e5,_8e6){
-var _8e7=this._eventListeners[type];
-if(_8e7){
-for(var i=0;i<_8e7.length;i++){
-if(_8e7[i]==_8e5){
-_8e7.splice(i,1);
+_8b9.removeEventListener=function(type,_8e9,_8ea){
+var _8eb=this._eventListeners[type];
+if(_8eb){
+for(var i=0;i<_8eb.length;i++){
+if(_8eb[i]==_8e9){
+_8eb.splice(i,1);
 return;
 }
 }
 }
 };
-_8b5.dispatchEvent=function(e){
+_8b9.dispatchEvent=function(e){
 var type=e.type;
 if(!type){
 throw new Error("Cannot dispatch invalid event "+e);
 }
 try{
-var _8eb=this["on"+type];
-if(typeof _8eb==="function"){
-_8eb(e);
+var _8ef=this["on"+type];
+if(typeof _8ef==="function"){
+_8ef(e);
 }
 }
 catch(e){
 }
-var _8ec=this._eventListeners[type];
-if(_8ec){
-for(var i=0;i<_8ec.length;i++){
+var _8f0=this._eventListeners[type];
+if(_8f0){
+for(var i=0;i<_8f0.length;i++){
 try{
-_8ec[i](e);
+_8f0[i](e);
 }
 catch(e2){
 }
 }
 }
 };
-_895.CONNECTING=_8b5.CONNECTING=0;
-_895.OPEN=_8b5.OPEN=1;
-_895.CLOSING=_8b5.CLOSING=2;
-_895.CLOSED=_8b5.CLOSED=3;
-return _895;
+_899.CONNECTING=_8b9.CONNECTING=0;
+_899.OPEN=_8b9.OPEN=1;
+_899.CLOSING=_8b9.CLOSING=2;
+_899.CLOSED=_8b9.CLOSED=3;
+return _899;
 })();
 window.WebSocket.__impls__={};
 window.WebSocket.__impls__["flash:wse"]=_306;
 }());
 (function(){
 window.WebSocketExtension=(function(){
-var _8ee=function(name){
+var _8f2=function(name){
 this.name=name;
 this.parameters={};
 this.enabled=false;
 this.negotiated=false;
 };
-var _8f0=_8ee.prototype;
-_8f0.getParameter=function(_8f1){
-return this.parameters[_8f1];
+var _8f4=_8f2.prototype;
+_8f4.getParameter=function(_8f5){
+return this.parameters[_8f5];
 };
-_8f0.setParameter=function(_8f2,_8f3){
-this.parameters[_8f2]=_8f3;
+_8f4.setParameter=function(_8f6,_8f7){
+this.parameters[_8f6]=_8f7;
 };
-_8f0.getParameters=function(){
+_8f4.getParameters=function(){
 var arr=[];
 for(var name in this.parameters){
 if(this.parameters.hasOwnProperty(name)){
@@ -7729,18 +7750,18 @@ arr.push(name);
 }
 return arr;
 };
-_8f0.parse=function(str){
+_8f4.parse=function(str){
 var arr=str.split(";");
 if(arr[0]!=this.name){
 throw new Error("Error: name not match");
 }
 this.parameters={};
 for(var i=1;i<arr.length;i++){
-var _8f9=arr[i].indexOf("=");
-this.parameters[arr[i].subString(0,_8f9)]=arr[i].substring(_8f9+1);
+var _8fd=arr[i].indexOf("=");
+this.parameters[arr[i].subString(0,_8fd)]=arr[i].substring(_8fd+1);
 }
 };
-_8f0.toString=function(){
+_8f4.toString=function(){
 var arr=[this.name];
 for(var p in this.parameters){
 if(this.parameters.hasOwnProperty(p)){
@@ -7749,90 +7770,90 @@ arr.push(p.name+"="+this.parameters[p]);
 }
 return arr.join(";");
 };
-return _8ee;
+return _8f2;
 })();
 })();
 (function(){
 window.WebSocketRevalidateExtension=(function(){
-var _8fc=function(){
+var _900=function(){
 };
-var _8fd=_8fc.prototype=new WebSocketExtension(_550.KAAZING_SEC_EXTENSION_REVALIDATE);
-return _8fc;
+var _901=_900.prototype=new WebSocketExtension(_550.KAAZING_SEC_EXTENSION_REVALIDATE);
+return _900;
 })();
 })();
 (function(){
 window.WebSocketFactory=(function(){
-var _8fe=function(){
+var _902=function(){
 this.extensions={};
-var _8ff=new WebSocketRevalidateExtension();
-this.extensions[_8ff.name]=_8ff;
+var _903=new WebSocketRevalidateExtension();
+this.extensions[_903.name]=_903;
 this.redirectPolicy=HttpRedirectPolicy.ALWAYS;
 };
-var _900=_8fe.prototype;
-_900.getExtension=function(name){
+var _904=_902.prototype;
+_904.getExtension=function(name){
 return this.extensions[name];
 };
-_900.setExtension=function(_902){
-this.extensions[_902.name]=_902;
+_904.setExtension=function(_906){
+this.extensions[_906.name]=_906;
 };
-_900.setChallengeHandler=function(_903){
-if(typeof (_903)=="undefined"){
+_904.setChallengeHandler=function(_907){
+if(typeof (_907)=="undefined"){
 var s="WebSocketFactory.setChallengeHandler(): Parameter 'challengeHandler' is required";
 throw new Error(s);
 }
-this.challengeHandler=_903;
-var _905=this.extensions[_550.KAAZING_SEC_EXTENSION_REVALIDATE];
-_905.enabled=(_903!=null);
+this.challengeHandler=_907;
+var _909=this.extensions[_550.KAAZING_SEC_EXTENSION_REVALIDATE];
+_909.enabled=(_907!=null);
 };
-_900.getChallengeHandler=function(){
+_904.getChallengeHandler=function(){
 return this.challengeHandler||null;
 };
-_900.createWebSocket=function(url,_907){
+_904.createWebSocket=function(url,_90b){
 var ext=[];
 for(var key in this.extensions){
 if(this.extensions.hasOwnProperty(key)&&this.extensions[key].enabled){
 ext.push(this.extensions[key].toString());
 }
 }
-var _90a=this.getChallengeHandler();
-var _90b=this.getDefaultConnectTimeout();
-var _90c=this.getDefaultRedirectPolicy();
-var ws=new WebSocket(url,_907,ext,_90a,_90b,_90c);
+var _90e=this.getChallengeHandler();
+var _90f=this.getDefaultConnectTimeout();
+var _910=this.getDefaultRedirectPolicy();
+var ws=new WebSocket(url,_90b,ext,_90e,_90f,_910);
 return ws;
 };
-_900.setDefaultConnectTimeout=function(_90e){
-if(typeof (_90e)=="undefined"){
+_904.setDefaultConnectTimeout=function(_912){
+if(typeof (_912)=="undefined"){
 var s="WebSocketFactory.setDefaultConnectTimeout(): int parameter 'connectTimeout' is required";
 throw new Error(s);
 }
-if(typeof (_90e)!="number"){
+if(typeof (_912)!="number"){
 var s="WebSocketFactory.setDefaultConnectTimeout(): connectTimeout should be an integer";
 throw new Error(s);
 }
-if(_90e<0){
+if(_912<0){
 var s="WebSocketFactory.setDefaultConnectTimeout(): Connect timeout cannot be negative";
 throw new Error(s);
 }
-this.connectTimeout=_90e;
+this.connectTimeout=_912;
 };
-_900.getDefaultConnectTimeout=function(){
+_904.getDefaultConnectTimeout=function(){
 return this.connectTimeout||0;
 };
-_900.setDefaultRedirectPolicy=function(_910){
-if(typeof (_910)=="undefined"){
+_904.setDefaultRedirectPolicy=function(_914){
+if(typeof (_914)=="undefined"){
 var s="WebSocketFactory.setDefaultRedirectPolicy(): int parameter 'redirectPolicy' is required";
 throw new Error(s);
 }
-if(!(_910 instanceof HttpRedirectPolicy)){
+if(!(_914 instanceof HttpRedirectPolicy)){
 var s="WebSocketFactory.setDefaultRedirectPolicy(): redirectPolicy should be an instance of HttpRedirectPolicy";
 throw new Error(s);
 }
-this.redirectPolicy=_910;
+this.redirectPolicy=_914;
 };
-_900.getDefaultRedirectPolicy=function(){
+_904.getDefaultRedirectPolicy=function(){
 return this.redirectPolicy;
 };
-return _8fe;
+return _902;
 })();
 })();
 window.___Loader=new _39c(_26a);
